@@ -1,22 +1,25 @@
 ---
-# TODO: review — draft written from the CV and publication list. Please check and rewrite freely.
+# DRAFT — please review and rewrite freely.
+# Facts about Giuseppe’s work come only from CLAUDE.md (theme list) and reference/cv.md.
+# The first paragraph is a general explanation of the topic, not a claim about his work.
+# TODO: add a key figure.
 title: Bayesian inference and model complexity
 order: 3
-summary: Using data to calibrate hydrological models honestly, so that their predictions come with a realistic measure of uncertainty.
+summary: Calibrating vadose zone models against data, with an honest account of uncertainty and of how complex a model needs to be.
 tags: [bayesian]
 keyQuestions:
-  - How much information about soil hydraulic properties do our measurements actually contain?
-  - Which Markov chain Monte Carlo samplers work best for inverse vadose zone modeling?
-  - When is a more complex model justified by the data, and when is a simpler one better?
-  - How can global and local optimization be combined to calibrate models efficiently?
+  - "TODO: review — Which MCMC samplers are best suited to calibrating vadose zone models?"
+  - "TODO: review — How much information do the available data contain about model parameters?"
+  - "TODO: review — How complex should a model be, given the data?"
+  - "TODO: review — How can global optimization support model calibration?"
 ---
 
-Models of soil water and solute movement depend on parameters that are hard or impossible to measure directly. They have to be inferred from observations such as soil moisture, outflow or tracer concentrations. Bayesian inference does this in a principled way: instead of a single “best” set of parameters, it gives a range of plausible values and tells us how confident we can be in the model’s predictions.
+Hydrological models depend on parameters that usually cannot be measured directly and have to be inferred from observations. Bayesian inference treats these parameters as uncertain and gives a range of plausible values instead of a single answer, so predictions come with a measure of their uncertainty.
 
 ## In more detail
 
-This work studies the performance of Markov chain Monte Carlo ensemble samplers for inverse vadose zone modeling, and the information content of different data types, including soil water measurements and cosmic-ray neutron data, for estimating soil hydraulic properties.
+This theme covers Markov chain Monte Carlo (MCMC) samplers, the information content of data, model selection and global optimization. It corresponds to one of Giuseppe’s research fields: Bayesian inference, model complexity analysis, and uncertainty assessment.
 
-Model complexity is a recurring theme: Bayesian model selection is used to decide how much process detail the data can support, for example in green roof hydrology and in nitrogen turnover in a controlled aquifer model. Related tools include hybrid global–local optimization strategies, global sensitivity analysis and surrogate-based modeling.
+As Principal Investigator of a Rita Levi Montalcini Program project (MUR, 2022–present), he leads the development of a data-informed Bayesian probabilistic platform for the dynamic calibration of vadose zone hydrological models. He also co-developed the Global Optimization (GOpt) module for HYDRUS. At the EGU General Assembly 2025 in Vienna, he gave the invited talk “Bayesian Inference in Physically-based Vadose Zone Modeling: The Good, The Bad and The Ugly”.
 
-The Rita Levi Montalcini project develops a data-informed Bayesian probabilistic platform for the dynamic calibration of vadose zone hydrological models.
+TODO: expand with a description of methods and main results.

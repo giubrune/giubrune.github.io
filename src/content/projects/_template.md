@@ -4,7 +4,7 @@
 
 title: Full project title
 acronym: ACRONYM          # optional
-role: Principal Investigator   # Giuseppe’s role, e.g. Co-PI & Work Package Leader
+role: Principal Investigator   # Giuseppe’s role, e.g. Co-PI and Work Package Leader
 funder: Funding programme or agency
 start: 2024               # first year
 end: present              # last year, or present

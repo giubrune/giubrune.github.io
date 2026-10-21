@@ -1,9 +1,9 @@
 ---
-# TODO: confirm end date and status; add partners, link and description.
+# TODO: the CV lists this project as running (“present”). Confirm status and end date; add partners, link and description.
 title: Soil erosion in Austria – from mean to extreme
 acronym: EROS-A
-role: Co-PI & Work Package Leader
-funder: Austrian Climate Research Programme (ACRP)
+role: Co-PI and Work Package Leader
+funder: ACRP
 start: 2022
 end: present
 status: current

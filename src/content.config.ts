@@ -136,6 +136,7 @@ const teaching = defineCollection({
   schema: z.object({
     title: localized,
     institution: z.string().min(1),
+    place: z.string().optional(),
     role: z.enum(['lecturer', 'invited-lecturer', 'teaching-assistant']).default('lecturer'),
     level: z.enum(['bsc', 'msc', 'phd', 'other']).optional(),
     /** Language of instruction. */

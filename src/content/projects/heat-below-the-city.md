@@ -1,7 +1,7 @@
 ---
-# TODO: confirm end date and status; add partners, link and description.
+# TODO: the CV lists this project as running (“present”). Confirm status and end date; add partners, link and description.
 title: Heat below the city
-role: Co-PI & Work Package Leader
+role: Co-PI and Work Package Leader
 funder: City of Vienna, WWTF
 start: 2021
 end: present

@@ -131,7 +131,7 @@ From `src/content/company/index.md`. Sections: what the company does, services, 
 - 2017 Marie Skłodowska-Curie Seal of Excellence; Outstanding Reviewer, Journal of Hydrology; Keynote, 5th HYDRUS Conference, Prague.
 
 ### CV
-Web version generated from `src/data/` YAML files: `positions.yaml`, `education.yaml`, `awards.yaml`, `service.yaml` (editorial boards: Journal of Hydrology, Vadose Zone Journal, SSSA Journal, Frontiers in Water, Journal of Hydrology and Hydromechanics; reviewing; project evaluation for MUR, WTZ, Czech Science Foundation), `conferences.yaml`. Plus a PDF download (`public/cv/Brunetti_CV.pdf`, provided by owner). Use the CV PDF in `reference/` as the source for all of these.
+Web version generated from `src/data/` YAML files: `positions.yaml`, `education.yaml`, `awards.yaml`, `service.yaml` (editorial boards: Journal of Hydrology, Vadose Zone Journal, SSSA Journal, Frontiers in Water, Journal of Hydrology and Hydromechanics; reviewing; project evaluation for MUR, WTZ, Czech Science Foundation), `conferences.yaml`. Plus a PDF download (`public/cv/Brunetti_CV.pdf`, provided by owner). Use `reference/cv.md` as the only source for all of these.
 
 ## 6. Design direction
 
@@ -157,7 +157,7 @@ Web version generated from `src/data/` YAML files: `positions.yaml`, `education.
 ```
 /
 ├── CLAUDE.md
-├── reference/                 # source material, not published (CV PDF, photos to process)
+├── reference/                 # source material, not published (cv.md = source of truth for facts, CV-1.pdf, photos to process)
 ├── public/                    # static files: CNAME, favicon, cv/, images used as-is
 ├── src/
 │   ├── content/
@@ -187,7 +187,7 @@ Include a short `EDITING.md` for the owner: “to add a paper, add a BibTeX entr
 ## 8. Build plan (phases)
 
 1. **Scaffold:** Astro project, tokens, base layout, nav, footer, i18n skeleton, deploy workflow. Deploy a placeholder to GitHub Pages. Commit.
-2. **Content model:** collections + schemas + templates; populate from `reference/CV.pdf` and this file. Commit.
+2. **Content model:** collections + schemas + templates; populate from `reference/cv.md` and this file. Commit.
 3. **Design plan → approval → Home page with hero.**
 4. Publications page (BibTeX pipeline, filters, per-year chart).
 5. Research, Software, Projects pages.
@@ -231,5 +231,10 @@ Include a short `EDITING.md` for the owner: “to add a paper, add a BibTeX entr
   - Bilingual content (teaching, open positions) uses `{ en, it? }` fields in one file; Italian falls back to English when missing. Free-text pages use one file per language under `pages/en` and `pages/it`.
   - Dates that may only be partly known (news, deadlines) accept `2025`, `2025-04` or `2025-04-30` and are stored as text.
   - `src/data/publications.bib` is now the master copy; `reference/publications.bib` is only the original source.
-  - Research narratives, software descriptions and the Join text are drafts from the CV and paper titles, marked `TODO: review`.
+  - Research narratives and the bio are drafts marked `DRAFT`; software and Join texts are TODO.
 - 2026-10-21: Repository is `giubrune/giubrune.github.io` (GitHub user site of the `giubrune` account; renamed from `gbrunetti.github.io`, which under that account would have been served from a sub-folder). `site` is fixed to `https://giubrune.github.io` in `astro.config.mjs`, with no base path; the `SITE`/`BASE` env vars were removed. Keep using `href()`/`localizedHref()` for internal links anyway, so a base path can be reintroduced without edits.
+- 2026-10-21 (phase 2 redo): **`reference/cv.md` and this file are the only sources of facts.** Phase 2 content had added details from general knowledge, inference and paper titles in `publications.bib` (collaborator affiliations, street address, city/country names not in the CV, spelled-out funder names, Italian course titles, paper-specific details in research and software texts). All were removed. Rules from now on:
+  - Copy facts as written in `cv.md` (names, roles, funders, places). Don’t expand abbreviations, add cities/countries, or translate official names unless the owner provides them.
+  - Use `publications.bib` only for the publication list itself, not as a source for narrative text.
+  - If a field needs information that isn’t in `cv.md` or this file, write `TODO:` instead of guessing.
+  - Draft texts may only state facts from these two files; general background sentences must be clearly generic and noted as such in the file header.

@@ -1,18 +1,16 @@
 ---
 title: Join us
-description: Opportunities for PhD students, postdocs and MSc thesis students in vadose zone hydrology and modeling at the University of Calabria.
+description: Opportunities for PhD students, postdocs and MSc thesis students at the University of Calabria.
 ---
 
-<!-- TODO: review — draft text. Open positions are listed automatically above or below this text. -->
+<!-- DRAFT — open positions are listed automatically from src/content/positions/. -->
 
-I am always happy to hear from motivated students and researchers who want to work on water flow and contaminant transport in soils, plant–soil interactions, Bayesian inference or nature-based solutions.
+Prospective PhD students, postdocs and MSc thesis students, from Italy and abroad, are welcome to get in touch.
 
 ## MSc theses
 
-Thesis topics are available all year round, both for students at the University of Calabria and for visiting students. Topics range from field and laboratory data analysis to numerical modeling and Python programming. Get in touch to discuss a topic that fits your interests.
+TODO: describe the standing invitation for MSc theses (possible topics, who can apply).
 
 ## How to apply
 
-Send an email with:
-
-- TODO: confirm what candidates should send (e.g. a short CV, transcript of records, and a few lines on your interests and why you would like to join).
+TODO: what candidates should send, and to which address.

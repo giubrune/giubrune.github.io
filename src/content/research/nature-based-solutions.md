@@ -1,20 +1,24 @@
 ---
-# TODO: review — draft written from the CV and publication list. Please check and rewrite freely.
+# DRAFT — please review and rewrite freely.
+# Facts about Giuseppe’s work come only from CLAUDE.md (theme list) and reference/cv.md.
+# The first paragraph is a general explanation of the topic, not a claim about his work.
+# TODO: add a key figure.
 title: Nature-based solutions and urban hydrology
 order: 5
-summary: Green roofs, permeable pavements and other green infrastructure that let cities store, filter and use rainwater, and the shallow ground as a source of heat.
+summary: Green roofs, permeable pavements and other green infrastructure for managing water in cities, and the shallow subsurface as a source of heat.
 tags: [urban, energy]
 keyQuestions:
-  - How much stormwater runoff can green roofs and permeable pavements retain in a Mediterranean climate?
-  - How can the benefits of single green infrastructure elements be scaled up to a whole catchment?
-  - Can green roofs treat domestic wastewater?
-  - How can the shallow subsurface be used efficiently for heating and cooling?
+  - "TODO: review — How do green roofs and permeable pavements behave hydrologically?"
+  - "TODO: review — What are the benefits of green infrastructure for urban water management?"
+  - "TODO: review — How can borehole heat exchangers and the shallow subsurface be used for heating and cooling?"
 ---
 
-Cities cover soil with roofs and roads, so rain that would have soaked into the ground runs off instead, causing floods and carrying pollutants into rivers. Green roofs, permeable pavements and other nature-based solutions give some of that capacity back. To design them well, we need to know how water moves through their layers, how much they retain, and how they behave over time.
+Cities cover much of the ground with roofs and roads, so less rain can soak into the soil. Nature-based solutions such as green roofs and permeable pavements give some of that capacity back.
 
 ## In more detail
 
-This work uses variably saturated flow models, laboratory experiments and monitoring data to analyse the hydraulic behaviour of green roofs and permeable pavements, including their hygrothermal behaviour, their pollutant removal efficiency and their environmental benefits assessed by life cycle assessment. Coupling HYDRUS-1D with EPA SWMM makes it possible to assess the hydrological benefits of green infrastructure across scales.
+This theme covers green roofs, permeable pavements, green infrastructure and shallow geothermal energy (borehole heat exchangers, heat below the city).
 
-The urban subsurface is also a source of energy. Work on shallow geothermal systems includes a computationally efficient pseudo-3D model of borehole heat exchangers and the “Heat below the city” project in Vienna.
+Giuseppe’s Ph.D. dissertation at the University of Calabria (2014–2017) dealt with mechanistic modeling for the numerical analysis of Low Impact Development techniques. As a postdoctoral researcher at the University of Brescia (2017), he worked on the project URBAID: assisted and integrated urban regeneration. His project “Wetland Roofs for a Sustainable Environment” received a Marie Skłodowska-Curie Seal of Excellence (2017). He is Co-PI and Work Package Leader of “Heat below the city” (City of Vienna, WWTF, 2021–present).
+
+TODO: expand with a description of methods and main results.

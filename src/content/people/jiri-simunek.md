@@ -1,7 +1,6 @@
 ---
-# TODO: confirm the affiliation and add a link to the personal page.
+# Named as a key collaborator in CLAUDE.md. TODO: add affiliation and a link to the personal page.
 name: Jiří Šimůnek
 group: collaborator
-affiliation: University of California, Riverside
 order: 1
 ---

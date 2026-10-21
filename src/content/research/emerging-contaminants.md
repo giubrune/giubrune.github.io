@@ -1,20 +1,25 @@
 ---
-# TODO: review — draft written from the CV and publication list. Please check and rewrite freely.
+# DRAFT — please review and rewrite freely.
+# Facts about Giuseppe’s work come only from CLAUDE.md (theme list) and reference/cv.md.
+# The first paragraph is a general explanation of the topic, not a claim about his work.
+# TODO: add a key figure.
 title: Emerging contaminants in porous media
 order: 4
-summary: How microplastics, pesticides and nitrogen move and transform in soils and sediments, and how they can be kept out of groundwater.
+summary: How microplastics, pesticides and nitrogen move and transform in soils and other porous media, and how biochar filters can help remediate groundwater.
 tags: [contaminants]
 keyQuestions:
-  - How do particle size, density and grain size control the movement of microplastics through sediments?
-  - Can managed aquifer recharge push pesticides from agricultural soils into groundwater?
-  - How is nitrogen transformed as water moves through soils, green roofs and aquifers?
-  - Can biochar filters help remediate contaminated groundwater?
+  - "TODO: review — How do microplastics move through soils and other porous media?"
+  - "TODO: review — How are pesticides transported through the vadose zone?"
+  - "TODO: review — How is nitrogen transformed along the way?"
+  - "TODO: review — Can biochar filters help remediate groundwater?"
 ---
 
-Soils and sediments act as filters between human activities and groundwater, but they do not stop everything. Microplastics, pesticides and excess nitrogen can move through them, sometimes over long distances and long times. Knowing how these contaminants travel and transform helps protect drinking water resources.
+Soils and sediments stand between human activities and groundwater. Some contaminants are retained or broken down on the way, others are not. Knowing how they move and transform helps protect groundwater.
 
 ## In more detail
 
-Column experiments and numerical models are combined to study the transport of microplastics in artificial and natural porous media, and the role of particle size, particle density and sediment grain size.
+This theme covers microplastics, pesticides, nitrogen turnover and biochar filters.
 
-Other work examines the fate and transport of pesticides in agricultural soils under managed aquifer recharge, including in very thick (70 m) soil profiles; nitrogen turnover in green roofs used for domestic wastewater treatment and in a controlled aquifer model; and physical–biological biochar filters for groundwater remediation, with a focus on biofilm development.
+Related projects include “Macro and microplastics in agricultural soil systems” (Marie Skłodowska-Curie ITN, 2020–present), where Giuseppe is Co-PI and Supervisor, and “Development of physical–biological biochar filters for groundwater remediation with a focus on biofilm development” (Forschung Altlastensanierung, 2020–present), where he is Co-PI and Work Package Leader.
+
+TODO: expand with a description of methods and main results.

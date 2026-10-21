@@ -1,8 +1,8 @@
 ---
-# TODO: confirm end date and status; add the ITN acronym, partners, link and description.
+# TODO: the CV lists this project as running (“present”). Confirm status and end date; add partners, link and description.
 title: Macro and microplastics in agricultural soil systems
-role: Co-PI & Supervisor
-funder: Marie Skłodowska-Curie Innovative Training Network (ITN)
+role: Co-PI and Supervisor
+funder: Marie Skłodowska-Curie ITN
 start: 2020
 end: present
 status: current

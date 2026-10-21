@@ -6,7 +6,7 @@
 #   title: session or talk title (required)
 #   event: conference name (required)
 #   place: (optional)
-# Source: CV, last updated June 16, 2026.
+# Source: reference/cv.md.
 
 # Convening and chairing
 
@@ -14,31 +14,31 @@
   type: convener
   title: "Hydrological processes and contaminants transport in the vadose zone: Recent developments and novel insights"
   event: EGU General Assembly 2025
-  place: Vienna, Austria
+  place: Vienna
 
 - year: 2024
   type: co-convener
   title: Hydrobiogeochemical processes in heterogeneous multiphase systems across scales
   event: EGU General Assembly 2024
-  place: Vienna, Austria
+  place: Vienna
 
 - year: 2023
   type: co-convener
-  title: "Flow and transport in the vadose zone – Experimental and modeling approaches for characterizing processes in a heterogenous soil-plant system"
+  title: "Flow and transport in the vadose zone – Experimental and modeling approaches for characterizing processes in a heterogeneous soil-plant system"
   event: EGU General Assembly 2023
-  place: Vienna, Austria
+  place: Vienna
 
 - year: 2023
   type: chair
-  title: Conference chair
+  title: Chair
   event: 7th International Conference “HYDRUS Software Applications to Subsurface Flow and Contaminant Transport Problems”
-  place: Prague, Czech Republic
+  place: Prague
 
 - year: 2022
   type: co-convener
   title: Modeling water flow and contaminant transport in soils
   event: XXIV Computational Methods in Water Resources (CMWR)
-  place: Gdańsk University of Technology, Poland
+  place: Gdańsk University of Technology
 
 # Invited and keynote talks
 
@@ -46,16 +46,16 @@
   type: invited
   title: "Bayesian Inference in Physically-based Vadose Zone Modeling: The Good, The Bad and The Ugly"
   event: EGU General Assembly 2025
-  place: Vienna, Austria
+  place: Vienna
 
 - year: 2023
   type: keynote
   title: "Re-greening HYDRUS: Towards a unified physically-based soil-plant model"
   event: 7th International Conference “HYDRUS Software Applications to Subsurface Flow and Contaminant Transport Problems”
-  place: Prague, Czech Republic
+  place: Prague
 
 - year: 2017
   type: keynote
   title: Selected Applications of HYDRUS Models for Engineering Problems
-  event: 5th International Conference “HYDRUS Software Applications to Subsurface Flow and Contaminant Transport Problems”
-  place: Prague, Czech Republic
+  event: 5th Conference “HYDRUS Software Applications to Subsurface Flow and Contaminant Transport Problems”
+  place: Prague

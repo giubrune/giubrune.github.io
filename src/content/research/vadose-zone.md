@@ -1,22 +1,25 @@
 ---
-# TODO: review — draft written from the CV and publication list. Please check and rewrite freely.
+# DRAFT — please review and rewrite freely.
+# Facts about Giuseppe’s work come only from CLAUDE.md (theme list) and reference/cv.md.
+# The first paragraph is a general explanation of the topic, not a claim about his work.
+# TODO: add a key figure.
 title: Vadose zone flow and transport
 order: 1
-summary: How rain and irrigation water move through the soil above the groundwater, how much of it reaches the aquifer, and what it carries along.
+summary: How water and solutes move through the unsaturated zone between the soil surface and the groundwater, and how much of that water recharges the aquifer.
 tags: [vadose, mar]
 keyQuestions:
-  - How much of the water that infiltrates at the surface becomes groundwater recharge, and how long does it take?
-  - When do preferential flow paths let water and solutes bypass the soil matrix?
-  - What can stable isotopes tell us about water origin and travel times in the unsaturated zone?
-  - Where and how should managed aquifer recharge be carried out to be effective?
+  - "TODO: review — How do preferential flow and nonequilibrium transport affect the movement of water and solutes through the vadose zone?"
+  - "TODO: review — How much groundwater recharge does the vadose zone allow, and how variable is it?"
+  - "TODO: review — What can isotopes tell us about flow and transport in the unsaturated zone?"
+  - "TODO: review — How does the vadose zone control managed aquifer recharge?"
 ---
 
-Between the soil surface and the water table lies the vadose, or unsaturated, zone: a layer of soil and sediment whose pores hold both water and air. Every drop of rain or irrigation water that recharges an aquifer has to cross it, and so does every fertiliser, pesticide or contaminant it carries. Understanding this layer is the key to predicting how much groundwater we can count on, and how clean it will be.
+The vadose zone is the region between the soil surface and the water table, where the pores of soil and sediment hold both water and air. Water that recharges an aquifer has to cross it, and so do the substances dissolved in that water.
 
 ## In more detail
 
-This work combines field and laboratory data with physically based models of variably saturated flow and solute transport, mostly built on the HYDRUS family of codes. Topics include preferential flow and physical nonequilibrium transport in layered and heterogeneous soils, recharge transit times, the effect of tillage and soil consolidation on hydrological behaviour, and soil moisture dynamics in soils influenced by shallow groundwater.
+This theme covers variably saturated flow, preferential flow and nonequilibrium transport, isotopes, managed aquifer recharge and groundwater recharge.
 
-Stable water isotopes are used as tracers, which requires accounting for fractionation during evaporation and under soil tension. Long-term soil water monitoring is used to estimate vadose zone fluxes and groundwater recharge rates across Austria.
+Related work includes the project PREMOD, “Preferential flow and nonequilibrium transport in agricultural hillslope: bridging the gap between observations and model identification”, the project “Variability of groundwater recharge rates in Austria”, and earlier postdoctoral work at the University of California, Davis, on the hydrology of managed aquifer recharge in the Central Valley Aquifer and the Mississippi Embayment.
 
-A further line of work concerns managed aquifer recharge on agricultural land in California’s Central Valley: how vadose zone heterogeneity controls recharge efficiency, where recharge sites should be located, and how deep, thick soil profiles respond to large water applications.
+TODO: expand with a description of methods and main results.

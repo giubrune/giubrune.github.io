@@ -7,6 +7,7 @@ title:
   it: Nome del corso in italiano      # optional; the English name is used if missing
 
 institution: University of Calabria
+place: Italy
 
 # One of: lecturer, invited-lecturer, teaching-assistant
 role: lecturer

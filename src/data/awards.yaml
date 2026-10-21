@@ -8,7 +8,7 @@
 #   place: (optional)
 #   note:  one line of context (optional)
 #   url:   link (optional)
-# Source: CV, last updated June 16, 2026.
+# Source: reference/cv.md.
 
 - year: 2025
   title: Outstanding Paper Award
@@ -23,14 +23,14 @@
   note: Competitively selects 30 young researchers employed at foreign research institutions.
 
 - year: 2018
-  title: International Soil Modeling Consortium Early Career Award
+  title: International Soil Modeling Consortium (ISMC) Early Career Award
   by: 2nd ISMC Conference
   place: Wageningen, Netherlands
-  note: Career award recognizing outstanding achievements in soil physics and groundwater hydrology.
+  note: Recognizes outstanding achievements in soil physics and groundwater hydrology.
 
 - year: 2017
   title: Marie Skłodowska-Curie Seal of Excellence
-  note: "Project: Wetland Roofs for a Sustainable Environment."
+  note: "Project “Wetland Roofs for a Sustainable Environment”."
 
 - year: 2017
   title: Outstanding Reviewer

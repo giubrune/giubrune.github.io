@@ -1,6 +1,6 @@
 ---
-title: "Invited talk at EGU 2025"
-date: 2025   # TODO: add month and day (e.g. 2025-04-30) if known
+title: "Invited talk at the EGU General Assembly 2025"
+date: 2025   # TODO: add month and day (e.g. 2025-04-30); the CV gives only the year
 type: talk
 ---
 

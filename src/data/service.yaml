@@ -1,7 +1,7 @@
 # Editorial and reviewing activities. Used on the CV page.
 #
 # Each group has a role and a list of items (one per line, starting with "- ").
-# Source: CV, last updated June 16, 2026.
+# Source: reference/cv.md.
 
 - role: Associate Editor
   items:

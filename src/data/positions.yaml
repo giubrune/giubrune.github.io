@@ -7,9 +7,9 @@
 #   title:       job title (required)
 #   unit:        department or institute (optional)
 #   institution: university or organisation (required)
-#   place:       city, country (required)
+#   place:       as written in the CV (required)
 #   note:        topic or project (optional)
-# Source: CV, last updated June 16, 2026.
+# Source: reference/cv.md.
 
 - start: 2026
   end: present
@@ -48,22 +48,22 @@
   end: 2018
   title: Postdoctoral Researcher
   institution: University of California, Davis
-  place: Davis, USA
+  place: USA
   note: "Project: Regional Aquifer Management: Hydrology of Managed Aquifer Recharge in the Central Valley Aquifer and Mississippi Embayment."
 
 - start: 2017
   title: Postdoctoral Researcher
   institution: University of Brescia
-  place: Brescia, Italy
+  place: Italy
   note: "Project: URBAID: assisted and integrated urban regeneration."
 
 - start: 2016
   title: Visiting Scholar
   institution: Technical University of Dresden
-  place: Dresden, Germany
+  place: Germany
 
 - start: 2015
   end: 2016
   title: Visiting Scholar
   institution: University of California, Riverside
-  place: Riverside, USA
+  place: USA
