@@ -1,0 +1,69 @@
+# Career: jobs held, newest first. Used on the CV page.
+# (Open positions for students are in src/content/positions/, not here.)
+#
+# Each entry starts with "- ". Fields:
+#   start:       first year (required)
+#   end:         last year, or present (leave out for a single-year position)
+#   title:       job title (required)
+#   unit:        department or institute (optional)
+#   institution: university or organisation (required)
+#   place:       city, country (required)
+#   note:        topic or project (optional)
+# Source: CV, last updated June 16, 2026.
+
+- start: 2026
+  end: present
+  title: Associate Professor
+  unit: Department of Civil Engineering
+  institution: University of Calabria
+  place: Rende, Italy
+
+- start: 2023
+  end: 2026
+  title: Tenure-track Associate Professor
+  unit: Department of Civil Engineering
+  institution: University of Calabria
+  place: Rende, Italy
+
+- start: 2020
+  end: 2023
+  title: Senior Research Scientist and Lecturer
+  unit: Institute of Soil Physics and Rural Water Management
+  institution: University of Natural Resources and Life Sciences (BOKU)
+  place: Vienna, Austria
+
+- start: 2018
+  end: 2020
+  title: Assistant Professor
+  institution: University of Natural Resources and Life Sciences (BOKU)
+  place: Vienna, Austria
+
+- start: 2018
+  title: Postdoctoral Researcher
+  institution: Czech University of Life Sciences
+  place: Prague, Czech Republic
+  note: "Topic: modeling of processes in the soil–water–plant environment."
+
+- start: 2017
+  end: 2018
+  title: Postdoctoral Researcher
+  institution: University of California, Davis
+  place: Davis, USA
+  note: "Project: Regional Aquifer Management: Hydrology of Managed Aquifer Recharge in the Central Valley Aquifer and Mississippi Embayment."
+
+- start: 2017
+  title: Postdoctoral Researcher
+  institution: University of Brescia
+  place: Brescia, Italy
+  note: "Project: URBAID: assisted and integrated urban regeneration."
+
+- start: 2016
+  title: Visiting Scholar
+  institution: Technical University of Dresden
+  place: Dresden, Germany
+
+- start: 2015
+  end: 2016
+  title: Visiting Scholar
+  institution: University of California, Riverside
+  place: Riverside, USA

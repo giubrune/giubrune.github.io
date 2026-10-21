@@ -1,0 +1,37 @@
+# Awards and honours, newest first. Used on the CV page.
+# (To also announce an award on the News page, add a news item in src/content/news/.)
+#
+# Fields:
+#   year:  (required)
+#   title: (required)
+#   by:    awarding body or occasion (optional)
+#   place: (optional)
+#   note:  one line of context (optional)
+#   url:   link (optional)
+# Source: CV, last updated June 16, 2026.
+
+- year: 2025
+  title: Outstanding Paper Award
+  by: Vadose Zone Journal, CANVAS 2025
+  place: Salt Lake City, USA
+  note: "For “Developments and Applications of the HYDRUS Computer Software Packages Since 2016”."
+
+- year: 2022
+  title: Winner, “Rita Levi Montalcini” Young Researchers Program
+  by: Ministry of University and Research (MUR)
+  place: Italy
+  note: Competitively selects 30 young researchers employed at foreign research institutions.
+
+- year: 2018
+  title: International Soil Modeling Consortium Early Career Award
+  by: 2nd ISMC Conference
+  place: Wageningen, Netherlands
+  note: Career award recognizing outstanding achievements in soil physics and groundwater hydrology.
+
+- year: 2017
+  title: Marie Skłodowska-Curie Seal of Excellence
+  note: "Project: Wetland Roofs for a Sustainable Environment."
+
+- year: 2017
+  title: Outstanding Reviewer
+  by: Journal of Hydrology

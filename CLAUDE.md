@@ -224,4 +224,12 @@ Include a short `EDITING.md` for the owner: “to add a paper, add a BibTeX entr
   - Unbuilt sections are served by the temporary `src/pages/[section].astro` (and `src/pages/it/[section].astro`); remove a section from its list when its real page is added.
   - `reference/` is git-ignored so the CV and source files stay out of the (public) repository; `publications.bib` will be copied to `src/data/` in phase 2.
   - No `public/CNAME` until the domain is known (an invalid CNAME breaks GitHub Pages).
+- 2026-10-21 (phase 2 content model): schemas in `src/content.config.ts`.
+  - Markdown collections: `research`, `software`, `projects`, `teaching`, `news`, `people`, `openPositions` (folder `src/content/positions/`), `company`, `pages` (`pages/en/*.md`, `pages/it/*.md`, ids like `en/home`). Files starting with `_` are templates and are not loaded.
+  - CV YAML in `src/data/` are loaded as collections too (`career` ← `positions.yaml`, `education`, `awards`, `service`, `conferences`); entries are plain lists, ids are added automatically.
+  - Links between content go one way: `software.themes` and `projects.themes` reference research files; research pages find their software/projects by looking those up. Publications are matched to research themes through the research file’s `tags` (BibTeX `keywords`).
+  - Bilingual content (teaching, open positions) uses `{ en, it? }` fields in one file; Italian falls back to English when missing. Free-text pages use one file per language under `pages/en` and `pages/it`.
+  - Dates that may only be partly known (news, deadlines) accept `2025`, `2025-04` or `2025-04-30` and are stored as text.
+  - `src/data/publications.bib` is now the master copy; `reference/publications.bib` is only the original source.
+  - Research narratives, software descriptions and the Join text are drafts from the CV and paper titles, marked `TODO: review`.
 - 2026-10-21: Repository is `giubrune/giubrune.github.io` (GitHub user site of the `giubrune` account; renamed from `gbrunetti.github.io`, which under that account would have been served from a sub-folder). `site` is fixed to `https://giubrune.github.io` in `astro.config.mjs`, with no base path; the `SITE`/`BASE` env vars were removed. Keep using `href()`/`localizedHref()` for internal links anyway, so a base path can be reintroduced without edits.

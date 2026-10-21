@@ -1,0 +1,45 @@
+# Editorial and reviewing activities. Used on the CV page.
+#
+# Each group has a role and a list of items (one per line, starting with "- ").
+# Source: CV, last updated June 16, 2026.
+
+- role: Associate Editor
+  items:
+    - Journal of Hydrology
+    - Vadose Zone Journal
+    - Soil Science Society of America Journal
+    - Frontiers in Water – Water and Hydrocomplexity
+    - Journal of Hydrology and Hydromechanics
+
+- role: Reviewer
+  items:
+    - Nature Communications
+    - Journal of Hydrology
+    - Environmental Modelling & Software
+    - Applied Energy
+    - Catena
+    - European Journal of Soil Science
+    - Transportation Geotechnics
+    - Environmental Earth Sciences
+    - Building Simulation
+    - Agricultural Water Management
+    - Science of the Total Environment
+    - Vadose Zone Journal
+    - Urban Water Journal
+    - Hydrology Research
+    - International Journal of Pavement Engineering
+    - Journal of Irrigation and Drainage
+    - PLOS ONE
+    - Soil and Water Research
+    - Applied Water Science
+    - Transport in Porous Media
+    - Coatings
+    - Geoderma
+    - Hydrology and Earth System Sciences
+    - Environmental Pollution
+
+- role: Project evaluator
+  items:
+    - Italian Ministry of University and Research (REPRISE)
+    - Wissenschaftlich-Technische Zusammenarbeit (WTZ, Austria)
+    - Czech Science Foundation

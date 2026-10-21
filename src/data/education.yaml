@@ -1,0 +1,36 @@
+# Education and qualifications, newest first. Used on the CV page.
+#
+# Fields:
+#   start:       first year (optional)
+#   end:         year completed (required)
+#   degree:      e.g. Ph.D. (required)
+#   field:       subject (optional)
+#   institution: (optional)
+#   place:       country or city, country (required)
+#   note:        e.g. dissertation title, honours (optional)
+# Source: CV, last updated June 16, 2026.
+
+- end: 2024
+  degree: National Habilitation, Full Professor
+  field: Hydrology and Hydraulic Constructions
+  place: Italy
+
+- end: 2020
+  degree: National Habilitation, Associate Professor
+  field: Hydrology and Hydraulic Constructions
+  place: Italy
+
+- start: 2014
+  end: 2017
+  degree: Ph.D.
+  institution: University of Calabria, Department of Civil Engineering
+  place: Italy
+  note: "Dissertation: On the use of mechanistic modeling for the numerical analysis of Low Impact Development techniques."
+
+- start: 2004
+  end: 2010
+  degree: M.Sc.
+  field: Building Engineering–Architecture
+  institution: University of Calabria
+  place: Italy
+  note: cum laude
