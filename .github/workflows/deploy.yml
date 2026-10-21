@@ -27,18 +27,12 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Detect Pages URL
-        id: pages
-        uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v5
 
       - run: npm ci
 
       - name: Build
         run: npm run build
-        env:
-          # Origin (e.g. https://user.github.io or the custom domain) and sub-path, if any.
-          SITE: ${{ steps.pages.outputs.origin }}
-          BASE: ${{ steps.pages.outputs.base_path || '/' }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

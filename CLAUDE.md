@@ -224,3 +224,4 @@ Include a short `EDITING.md` for the owner: “to add a paper, add a BibTeX entr
   - Unbuilt sections are served by the temporary `src/pages/[section].astro` (and `src/pages/it/[section].astro`); remove a section from its list when its real page is added.
   - `reference/` is git-ignored so the CV and source files stay out of the (public) repository; `publications.bib` will be copied to `src/data/` in phase 2.
   - No `public/CNAME` until the domain is known (an invalid CNAME breaks GitHub Pages).
+- 2026-10-21: Repository is `gbrunetti.github.io` (GitHub user site). `site` is fixed to `https://gbrunetti.github.io` in `astro.config.mjs`, with no base path; the `SITE`/`BASE` env vars were removed. Keep using `href()`/`localizedHref()` for internal links anyway, so a base path can be reintroduced without edits.
