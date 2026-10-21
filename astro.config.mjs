@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   // Public address of the site. Change this when a custom domain is added (see public/CNAME).
-  site: 'https://gbrunetti.github.io',
+  site: 'https://giubrune.github.io',
   output: 'static',
   trailingSlash: 'always',
   i18n: {
