@@ -1,12 +1,17 @@
 /*
   Design tokens — the single place for colours, fonts, sizes and spacing.
   Palette from CLAUDE.md §6. Contrast (WCAG AA) checked against the background:
-    text #232B2B ≈ 13:1, pore water #2B6A8C ≈ 5.5:1, loam #7D6340 ≈ 5.2:1.
-  Silt is for rules and patterns only, never for text.
+    text 13.3:1, muted 7.0:1, pore water 5.5:1, loam 5.2:1, root green 5.2:1 (light);
+    all ≥ 7.9:1 in dark mode. Silt is for rules and patterns only, never for text.
+
+  Colours are defined twice: light and dark. The page follows the visitor’s system
+  setting; the classes .theme-light / .theme-dark force one theme on any element
+  (used on /design-preview/). Keep the two dark blocks below identical.
 */
 
-:root {
-  color-scheme: light dark;
+:root,
+.theme-light {
+  color-scheme: light;
 
   /* Colour — light (“above the water table”) */
   --color-bg: #f5f6f3;          /* mineral white */
@@ -18,9 +23,71 @@
   --color-loam: #7d6340;        /* secondary accent, soil horizons */
   --color-silt: #c9c0a8;        /* rules, soil patterns, muted UI */
   --color-root: #4f6f45;        /* company + plant content only */
-  --color-water-table: var(--color-accent);
   --color-focus: #2b6a8c;
 
+  /* Soil profile (hero) — decorative only */
+  --soil-topsoil: #d3c6a6;
+  --soil-subsoil: #e0d8c4;
+  --soil-sand: #ebe5d6;
+  --soil-grain: #7d6340;
+  --soil-grain-light: #b3a383;
+  --soil-root: #6b5536;
+  --soil-water: #2b6a8c;
+}
+
+/* Dark mode — “below the water table” */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-bg: #11191e;
+    --color-surface: #18232a;
+    --color-text: #e3e6e1;
+    --color-text-muted: #aab3b1;
+    --color-accent: #7fb6d4;
+    --color-accent-strong: #a8cfe4;
+    --color-loam: #c9a978;
+    --color-silt: #3c4a4f;
+    --color-root: #93b787;
+    --color-focus: #a8cfe4;
+    --soil-topsoil: #2c2b24;
+    --soil-subsoil: #242828;
+    --soil-sand: #1d2427;
+    --soil-grain: #9c8763;
+    --soil-grain-light: #5a5446;
+    --soil-root: #a68d65;
+    --soil-water: #7fb6d4;
+  }
+}
+
+.theme-dark {
+  color-scheme: dark;
+  --color-bg: #11191e;
+  --color-surface: #18232a;
+  --color-text: #e3e6e1;
+  --color-text-muted: #aab3b1;
+  --color-accent: #7fb6d4;
+  --color-accent-strong: #a8cfe4;
+  --color-loam: #c9a978;
+  --color-silt: #3c4a4f;
+  --color-root: #93b787;
+  --color-focus: #a8cfe4;
+  --soil-topsoil: #2c2b24;
+  --soil-subsoil: #242828;
+  --soil-sand: #1d2427;
+  --soil-grain: #9c8763;
+  --soil-grain-light: #5a5446;
+  --soil-root: #a68d65;
+  --soil-water: #7fb6d4;
+}
+
+/* A forced-theme section paints its own background. */
+.theme-light,
+.theme-dark {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+:root {
   /* Type */
   --font-body: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-ui: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -32,6 +99,7 @@
   --step-2: clamp(1.52rem, 1.4rem + 0.55vw, 1.85rem);
   --step-3: clamp(1.83rem, 1.62rem + 0.9vw, 2.4rem);
   --step-4: clamp(2.2rem, 1.85rem + 1.5vw, 3.2rem);
+  --step-5: clamp(2.5rem, 1.95rem + 2.4vw, 4rem);   /* hero name only */
 
   --leading-body: 1.6;
   --leading-tight: 1.2;
@@ -50,24 +118,14 @@
   --gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
   --page-max: 72rem;
 
-  /* Lines */
-  --rule: 1px solid var(--color-silt);
   --radius: 3px;
-  --focus-ring: 3px solid var(--color-focus);
 }
 
-/* Dark mode — “below the water table” */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #11191e;
-    --color-surface: #18232a;
-    --color-text: #e3e6e1;
-    --color-text-muted: #aab3b1;
-    --color-accent: #7fb6d4;
-    --color-accent-strong: #a8cfe4;
-    --color-loam: #c9a978;
-    --color-silt: #3c4a4f;
-    --color-root: #93b787;
-    --color-focus: #a8cfe4;
-  }
+/* Tokens built from colours: declared on every theme root so they pick up that theme’s colours. */
+:root,
+.theme-light,
+.theme-dark {
+  --color-water-table: var(--color-accent);
+  --rule: 1px solid var(--color-silt);
+  --focus-ring: 3px solid var(--color-focus);
 }

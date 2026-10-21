@@ -1,6 +1,8 @@
 # Design plan (phase 3) — for approval
 
-Status: **draft, waiting for Giuseppe’s approval.** Nothing below is built yet except the tokens from phase 1.
+Status: **draft, waiting for Giuseppe’s approval.** Preview in the browser at `/design-preview/` (temporary page).
+
+Decided so far (2026-10-21): text above the soil; animation about 5 s, only on the first visit of a browser session (finished picture after that); entry-point texts drafted from cv.md and CLAUDE.md, marked TODO; no “·” separators anywhere: use line breaks or spacing.
 
 ## 1. Idea in one line
 
@@ -57,8 +59,9 @@ Dark mode follows the visitor’s system setting. No toggle at first (can be add
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │   Giuseppe Brunetti                                       (grotesk, big) │
-│   Associate Professor · Department of Civil Engineering ·               │
-│   University of Calabria                                  (grotesk, muted)│
+│   Associate Professor                                     (grotesk, muted)│
+│   Department of Civil Engineering                                        │
+│   University of Calabria                                                 │
 │                                                                          │
 │   I study how water, solutes and contaminants move through the          │
 │   unsaturated zone between the soil surface and the groundwater,        │  statement
@@ -67,7 +70,7 @@ Dark mode follows the visitor’s system setting. No toggle at first (can be add
 │ ▁▂▁▁▂▁▁▁▂▁▁ ground surface ▁▁▂▁▁ ⌇ ⌇ roots ⌇ ▁▁▂▁▁▁▁▂▁▁▁▁▂▁▁▁▁▂▁▁▁▁▂▁▁ │
 │ ░░░░ topsoil: fine grains, roots ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
 │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ wetting front (pore water, translucent) ▓▓▓ │
-│ ·  ·  · subsoil: dense small dots  ·  ·  ▓▓▓▓▓▓▓▓·  ·  ·  ▓▓▓▓·  ·  ·  │
+│ ░ ░ ░ subsoil: dense small grains ░ ░ ▓▓▓▓▓▓▓▓░ ░ ░ ▓▓▓▓░ ░ ░ ░ ░ ░ ░ │
 │ ∘   ∘   ∘ sand / gravel: coarse grains   ∘   ∘   ∘   ∘   ∘   ∘   ∘   ∘ │
 │ ─────────────────────────────── water table ──────────────────────────── │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -88,10 +91,10 @@ Dark mode follows the visitor’s system setting. No toggle at first (can be add
     Open positions            (only shown when there is at least one)
     ▌PhD position on …  — deadline 31 December 2026          loam rule on the left
 
-    ORCID · Web of Science ResearcherID · (other profiles once known)
+    ORCID     Web of Science ResearcherID     (others once known)   spacing, no separators
 
 〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰 water table (footer top) 〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰
-    Contact · Sections · Research profiles                       footer
+    Contact     Sections     Research profiles                      footer
 ```
 
 ### Phone (360 px)
@@ -108,7 +111,7 @@ Dark mode follows the visitor’s system setting. No toggle at first (can be add
 │ ▁▂▁▁▂ surface ▁▁▂▁▁▂▁▁▂▁▁▂ │
 │ ░░░░░░░░░░░░░░░░░░░░░░░░░░ │  soil profile ≈ 220 px tall
 │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
-│ · · · · ▓▓▓▓ · · · ▓▓ · · │
+│ ░ ░ ░ ░ ▓▓▓▓ ░ ░ ░ ▓▓ ░ ░ │
 │ ∘  ∘  ∘  ∘  ∘  ∘  ∘  ∘  ∘ │
 │ ────── water table ─────── │
 ├────────────────────────────┤
@@ -127,7 +130,7 @@ Dark mode follows the visitor’s system setting. No toggle at first (can be add
 - **What it shows:** a cross-section with three soil horizons, drawn as subtle SVG textures (fine grains and a few roots in the topsoil, dense small dots in the subsoil, coarse grains in the sand). The colours come from the palette, so dark mode works automatically.
 - **What moves:** a translucent pore-water layer grows down from the surface. Its lower edge is slightly irregular, like a real wetting front in heterogeneous soil. At each layer boundary its speed changes: it slows and spreads into fingers where it enters a coarser layer. It stops just above the water-table line.
 - **Physics:** the front depth over time is computed at build time with a Green–Ampt model for layered soil, using textbook parameters for each texture. It is labelled as illustrative only; demo 2 will later reuse the same code with a proper explanation.
-- **Duration:** about 5 seconds, played once per page load. Five seconds or less means no pause button is needed (WCAG 2.2.2).
+- **Duration:** about 5 seconds, played only on the first visit of a browser session; afterwards the finished picture is shown. Five seconds or less means no pause button is needed (WCAG 2.2.2). The “already played” flag lives in the browser’s session storage; if that is unavailable, the finished picture is shown.
 - **Without motion:** with reduced motion enabled, or without JavaScript, the final picture is shown, already drawn, with nothing moving.
 - **Weight:** inline SVG plus less than 3 kB of JavaScript, no libraries. The text (name, statement) is real HTML, so it is readable, searchable and translatable; the drawing is hidden from screen readers.
 

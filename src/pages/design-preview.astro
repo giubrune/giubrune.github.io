@@ -1,0 +1,361 @@
+---
+// TEMPORARY design review page (phase 3). Not linked from the menu, not in the sitemap,
+// hidden from search engines. Delete this file once the design is approved.
+import { getEntry } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SoilProfile from '../components/SoilProfile.astro';
+import { profile } from '../lib/profile';
+
+const home = await getEntry('pages', 'en/home');
+const statement = home?.data.statement ?? '';
+
+const swatches = [
+  { token: '--color-bg', name: 'Mineral white', use: 'Page background' },
+  { token: '--color-surface', name: 'Surface', use: 'Footer, quiet panels' },
+  { token: '--color-text', name: 'Graphite', use: 'Text' },
+  { token: '--color-text-muted', name: 'Muted text', use: 'Dates, metadata' },
+  { token: '--color-accent', name: 'Pore water', use: 'Links, focus, water' },
+  { token: '--color-loam', name: 'Loam', use: 'Soil, small accents' },
+  { token: '--color-silt', name: 'Silt', use: 'Rules, textures (never text)' },
+  { token: '--color-root', name: 'Root green', use: 'Company and plant content' },
+  { token: '--soil-topsoil', name: 'Topsoil', use: 'Hero drawing' },
+  { token: '--soil-subsoil', name: 'Subsoil', use: 'Hero drawing' },
+  { token: '--soil-sand', name: 'Sand', use: 'Hero drawing' },
+];
+
+const steps = [5, 4, 3, 2, 1, 0, -1];
+const themes = [
+  { cls: 'theme-light', label: 'Light (“above the water table”)' },
+  { cls: 'theme-dark', label: 'Dark (“below the water table”)' },
+];
+---
+
+<BaseLayout title="Design preview" noindex>
+  <div class="wrapper intro">
+    <h1>Design preview</h1>
+    <p>
+      Temporary page for reviewing the design before the home page is built. It is not linked from the menu and is
+      hidden from search engines. The rest of the site follows your system’s light or dark setting; here both are
+      shown side by side.
+    </p>
+  </div>
+
+  <section aria-labelledby="hero-heading">
+    <div class="wrapper"><h2 id="hero-heading">Hero (static, finished picture)</h2></div>
+    {
+      themes.map((t) => (
+        <div class:list={[t.cls, 'hero-demo']}>
+          <div class="wrapper">
+            <p class="theme-label">{t.label}</p>
+            <div class="hero-text">
+              <p class="hero-name">{profile.name}</p>
+              <p class="hero-role">
+                {profile.role.en}
+                <br />
+                {profile.department.en}
+                <br />
+                {profile.institution.en}
+              </p>
+              <p class="hero-statement">{statement}</p>
+            </div>
+          </div>
+          <SoilProfile id={`soil-${t.cls}`} />
+        </div>
+      ))
+    }
+    <div class="wrapper">
+      <p class="note">
+        Topsoil with fine grains and roots, subsoil with dense small grains, coarse sand, and the water table with its
+        symbol (▽). The blue tint is the water that has infiltrated; in the sand the front breaks into fingers. On the
+        home page this will be animated once per session (about 5 seconds).
+      </p>
+    </div>
+  </section>
+
+  <section class="wrapper" aria-labelledby="palette-heading">
+    <h2 id="palette-heading">Palette</h2>
+    <p>Each colour shows its value and its contrast against the page background (4.5:1 or more is needed for text).</p>
+    <div class="palettes">
+      {
+        themes.map((t) => (
+          <div class:list={[t.cls, 'palette']}>
+            <h3>{t.label}</h3>
+            <ul class="swatches">
+              {swatches.map((s) => (
+                <li class="swatch" data-token={s.token}>
+                  <span class="chip" style={`background: var(${s.token})`} />
+                  <span class="swatch-name">{s.name}</span>
+                  <span class="swatch-use">{s.use}</span>
+                  <span class="swatch-value">
+                    <code>{s.token}</code>
+                    <span class="hex" />
+                    <span class="ratio" />
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p class="sample">
+              Body text with <a href="#palette-heading">a link</a> and <span class="muted">muted metadata</span>.
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="wrapper" aria-labelledby="type-heading">
+    <h2 id="type-heading">Type scale</h2>
+    <p>
+      Familjen Grotesk for headings, navigation and labels; Source Serif 4 for body text and the hero statement. Sizes
+      grow smoothly with the screen width; the value shown is the size at your current window width.
+    </p>
+    <div class="scale">
+      {
+        steps.map((s) => (
+          <div class="step" style={`--size: var(--step-${s})`}>
+            <p class="step-label">
+              Step {s}
+              <br />
+              <span class="px" />
+            </p>
+            <p class="ui">Infiltration in layered soil</p>
+            <p class="serif">Infiltration in layered soil</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <h3>In use</h3>
+    <div class="specimen">
+      <p class="specimen-h1">Vadose zone flow and transport</p>
+      <p class="specimen-meta">2022 to present</p>
+      <p>
+        The vadose zone is the region between the soil surface and the water table, where the pores of soil and
+        sediment hold both water and air. Water that recharges an aquifer has to cross it, and so do the substances
+        dissolved in that water. This paragraph shows the body text at its maximum line length.
+      </p>
+      <p class="specimen-h2">In more detail</p>
+      <p>
+        <em>Italic</em> and <strong>bold</strong> text, a <a href="#type-heading">link</a>, and the numbers 1234567890
+        in running text.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // Show the actual colour values, contrast ratios and font sizes.
+  const lum = (rgb: number[]) =>
+    rgb
+      .map((v) => v / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+      .reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const parse = (c: string) => (c.match(/\d+(\.\d+)?/g) ?? []).slice(0, 3).map(Number);
+  const hex = (rgb: number[]) => '#' + rgb.map((v) => v.toString(16).padStart(2, '0')).join('');
+
+  document.querySelectorAll<HTMLElement>('.palette').forEach((panel) => {
+    const bg = parse(getComputedStyle(panel).backgroundColor);
+    panel.querySelectorAll<HTMLElement>('.swatch').forEach((sw) => {
+      const rgb = parse(getComputedStyle(sw.querySelector('.chip')!).backgroundColor);
+      const [a, b] = [lum(rgb), lum(bg)];
+      const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      sw.querySelector('.hex')!.textContent = hex(rgb);
+      sw.querySelector('.ratio')!.textContent = sw.dataset.token === '--color-bg' ? '' : `${ratio.toFixed(1)}:1`;
+    });
+  });
+
+  const sizes = () =>
+    document.querySelectorAll<HTMLElement>('.step').forEach((st) => {
+      const px = parseFloat(getComputedStyle(st.querySelector('.ui')!).fontSize);
+      st.querySelector('.px')!.textContent = `${Math.round(px)} px`;
+    });
+  sizes();
+  addEventListener('resize', sizes);
+</script>
+
+<style>
+  .intro {
+    padding-top: var(--space-l);
+  }
+
+  section {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .theme-label {
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    margin: 0;
+    padding-top: var(--space-m);
+  }
+
+  /* Hero */
+  .hero-demo {
+    border-top: var(--rule);
+  }
+
+  .hero-text {
+    padding-block: var(--space-xl) var(--space-l);
+  }
+
+  .hero-name {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: var(--step-5);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--space-s);
+  }
+
+  .hero-role {
+    font-family: var(--font-ui);
+    font-size: var(--step-0);
+    color: var(--color-text-muted);
+    line-height: 1.45;
+    margin: 0 0 var(--space-m);
+  }
+
+  .hero-statement {
+    font-family: var(--font-body);
+    font-size: var(--step-2);
+    line-height: 1.35;
+    max-width: 34ch;
+    margin: 0;
+  }
+
+  .note {
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    margin-top: var(--space-s);
+  }
+
+  /* Palette */
+  .palettes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+    gap: var(--space-m);
+  }
+
+  .palette {
+    padding: var(--space-m);
+    border: var(--rule);
+  }
+
+  .palette h3 {
+    margin-top: 0;
+    font-size: var(--step-1);
+  }
+
+  .swatches {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+
+  .swatch {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    column-gap: var(--space-s);
+    padding-block: var(--space-2xs);
+    border-bottom: var(--rule);
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+  }
+
+  .chip {
+    grid-row: span 3;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--color-silt);
+    border-radius: var(--radius);
+  }
+
+  .swatch-name {
+    font-weight: 600;
+    font-size: var(--step-0);
+  }
+
+  .swatch-use,
+  .swatch-value {
+    color: var(--color-text-muted);
+  }
+
+  .swatch-value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-s);
+  }
+
+  .sample {
+    margin: var(--space-m) 0 0;
+  }
+
+  .muted {
+    color: var(--color-text-muted);
+  }
+
+  /* Type scale */
+  .step {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    column-gap: var(--space-m);
+    align-items: baseline;
+    padding-block: var(--space-xs);
+    border-bottom: var(--rule);
+  }
+
+  .step-label {
+    grid-row: span 2;
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .ui,
+  .serif {
+    font-size: var(--size);
+    line-height: var(--leading-tight);
+    margin: 0;
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+
+  .ui {
+    font-family: var(--font-ui);
+    font-weight: 600;
+  }
+
+  .serif {
+    font-family: var(--font-body);
+  }
+
+  .specimen {
+    max-width: var(--measure);
+  }
+
+  .specimen-h1 {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: var(--step-4);
+    line-height: var(--leading-tight);
+    margin: var(--space-m) 0 var(--space-2xs);
+  }
+
+  .specimen-h2 {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: var(--step-3);
+    line-height: var(--leading-tight);
+    margin: var(--space-l) 0 var(--space-s);
+  }
+
+  .specimen-meta {
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-m);
+  }
+</style>

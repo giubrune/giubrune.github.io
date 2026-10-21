@@ -1,0 +1,139 @@
+---
+// Cross-section of a layered soil with the final wetting front (static).
+// Decorative: hidden from screen readers. Colours come from the --soil-* tokens.
+import { WIDTH, HEIGHT, WATER_TABLE, profile } from '../lib/soil-profile';
+
+interface Props {
+  /** Prefix for pattern ids, so the drawing can appear more than once on a page. */
+  id?: string;
+}
+
+const { id = 'soil' } = Astro.props;
+const { tiles } = profile;
+// Water-table symbol right of centre, so it stays visible when narrow screens crop the sides.
+const wtX = WIDTH / 2 + 230;
+---
+
+<svg
+  class="soil-profile"
+  viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+  preserveAspectRatio="xMidYMin slice"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <pattern id={`${id}-fine`} width={tiles.fine.w} height={tiles.fine.h} patternUnits="userSpaceOnUse">
+      {tiles.fine.grains.map((g) => <circle class="grain" cx={g.cx} cy={g.cy} r={g.rx} />)}
+    </pattern>
+    <pattern id={`${id}-dense`} width={tiles.dense.w} height={tiles.dense.h} patternUnits="userSpaceOnUse">
+      {tiles.dense.grains.map((g) => <circle class="grain-light" cx={g.cx} cy={g.cy} r={g.rx} />)}
+    </pattern>
+    <pattern id={`${id}-coarse`} width={tiles.coarse.w} height={tiles.coarse.h} patternUnits="userSpaceOnUse">
+      {
+        tiles.coarse.grains.map((g) => (
+          <ellipse class="pebble" cx={g.cx} cy={g.cy} rx={g.rx} ry={g.ry} transform={`rotate(${g.rot} ${g.cx} ${g.cy})`} />
+        ))
+      }
+    </pattern>
+  </defs>
+
+  <!-- Horizons -->
+  <path class="topsoil" d={profile.topsoil} />
+  <path d={profile.topsoil} fill={`url(#${id}-fine)`} />
+  <path class="subsoil" d={profile.subsoil} />
+  <path d={profile.subsoil} fill={`url(#${id}-dense)`} />
+  <path class="sand" d={profile.sand} />
+  <path d={profile.sand} fill={`url(#${id}-coarse)`} />
+
+  <!-- Roots -->
+  {profile.roots.map((r) => <path class:list={['root', { branch: !r.main }]} d={r.d} />)}
+
+  <!-- Horizon boundaries and ground surface -->
+  <path class="boundary" d={profile.boundary1Line} />
+  <path class="boundary" d={profile.boundary2Line} />
+  <path class="surface" d={profile.surfaceLine} />
+
+  <!-- Infiltrated water and wetting front -->
+  <path class="wet" d={profile.wet} />
+  <path class="front" d={profile.frontLine} />
+
+  <!-- Groundwater: saturated zone, water table line and symbol -->
+  <path class="saturated" d={profile.saturated} />
+  <line class="water-table" x1="0" y1={WATER_TABLE} x2={WIDTH} y2={WATER_TABLE} />
+  <path class="wt-symbol" d={`M${wtX - 9} ${WATER_TABLE - 15} L${wtX + 9} ${WATER_TABLE - 15} L${wtX} ${WATER_TABLE - 3} Z`} />
+  <line class="wt-tick" x1={wtX - 7} y1={WATER_TABLE + 6} x2={wtX + 7} y2={WATER_TABLE + 6} />
+  <line class="wt-tick" x1={wtX - 4} y1={WATER_TABLE + 11} x2={wtX + 4} y2={WATER_TABLE + 11} />
+</svg>
+
+<style>
+  .soil-profile {
+    display: block;
+    width: 100%;
+    /* Never wider than the drawing (1600 × 360), so the water table is never cut off. */
+    height: max(clamp(220px, 30vw, 400px), 22.5vw);
+  }
+
+  .topsoil { fill: var(--soil-topsoil); }
+  .subsoil { fill: var(--soil-subsoil); }
+  .sand { fill: var(--soil-sand); }
+
+  .grain { fill: var(--soil-grain); opacity: 0.55; }
+  .grain-light { fill: var(--soil-grain-light); opacity: 0.8; }
+  .pebble {
+    fill: var(--soil-sand);
+    stroke: var(--soil-grain-light);
+    stroke-width: 1.2;
+  }
+
+  .root {
+    fill: none;
+    stroke: var(--soil-root);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.75;
+  }
+  .root.branch { stroke-width: 0.8; }
+
+  .boundary {
+    fill: none;
+    stroke: var(--soil-grain-light);
+    stroke-width: 1;
+    stroke-dasharray: 2 5;
+  }
+
+  .surface {
+    fill: none;
+    stroke: var(--color-loam);
+    stroke-width: 2;
+  }
+
+  .wet {
+    fill: var(--soil-water);
+    opacity: 0.12;
+  }
+
+  .front {
+    fill: none;
+    stroke: var(--soil-water);
+    stroke-width: 1.5;
+    opacity: 0.75;
+  }
+
+  .saturated {
+    fill: var(--soil-water);
+    opacity: 0.28;
+  }
+
+  .water-table,
+  .wt-tick {
+    stroke: var(--color-water-table);
+    stroke-width: 2;
+  }
+
+  .wt-symbol {
+    fill: none;
+    stroke: var(--color-water-table);
+    stroke-width: 1.5;
+  }
+</style>
