@@ -1,0 +1,157 @@
+---
+// Site header: name (link to home), main menu, language switch.
+import { profile } from '../lib/profile';
+import { sections, type Lang } from '../i18n/ui';
+import { getLang, useTranslations, localizedHref, alternateHref, isCurrent } from '../i18n/utils';
+
+const lang = getLang(Astro.url);
+const t = useTranslations(lang);
+const otherLang: Lang = lang === 'en' ? 'it' : 'en';
+const menu = sections.filter((s) => s.primary);
+---
+
+<a class="skip-link" href="#main">{t('site.skip')}</a>
+<header class="site-header">
+  <div class="wrapper bar">
+    <a class="site-name" href={localizedHref('/', lang)}>{profile.name}</a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" hidden>
+      {t('nav.menu')}
+    </button>
+
+    <nav id="site-menu" class="menu" aria-label={t('nav.label')}>
+      <ul>
+        {
+          menu.map((s) => (
+            <li>
+              <a
+                href={localizedHref(s.path, lang)}
+                aria-current={isCurrent(Astro.url, s.path) ? 'page' : undefined}
+              >
+                {t(`nav.${s.key}`)}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="lang-switch" href={alternateHref(Astro.url, otherLang)} hreflang={otherLang} lang={otherLang}>
+        {t('lang.switch')}
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Small screens: collapse the menu behind a button. Without JavaScript the menu stays visible.
+  const button = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const menu = document.getElementById('site-menu');
+  if (button && menu) {
+    document.documentElement.classList.add('js');
+    button.hidden = false;
+    button.addEventListener('click', () => {
+      const open = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!open));
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+        button.setAttribute('aria-expanded', 'false');
+        button.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    border-bottom: var(--rule);
+    font-family: var(--font-ui);
+  }
+
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xs) var(--space-m);
+    padding-block: var(--space-s);
+  }
+
+  .site-name {
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs) var(--space-m);
+  }
+
+  .menu ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: none;
+  }
+
+  .menu a {
+    color: var(--color-text);
+    text-decoration: none;
+    padding-block: var(--space-3xs);
+    border-bottom: 2px solid transparent;
+  }
+
+  .menu a:hover {
+    border-bottom-color: var(--color-silt);
+  }
+
+  .menu a[aria-current='page'] {
+    border-bottom-color: var(--color-accent);
+  }
+
+  .menu .lang-switch {
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+  }
+
+  .menu-toggle {
+    font: inherit;
+    font-size: var(--step--1);
+    padding: var(--space-3xs) var(--space-xs);
+    color: var(--color-text);
+    background: transparent;
+    border: 1px solid var(--color-silt);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  @media (max-width: 52rem) {
+    :global(.js) .menu {
+      display: none;
+      flex-basis: 100%;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-block: var(--space-xs);
+    }
+
+    :global(.js) .menu-toggle[aria-expanded='true'] + .menu {
+      display: flex;
+    }
+
+    .menu ul {
+      flex-direction: column;
+    }
+  }
+
+  @media (min-width: 52.01rem) {
+    .menu-toggle {
+      display: none;
+    }
+  }
+</style>

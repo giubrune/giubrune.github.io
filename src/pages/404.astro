@@ -1,0 +1,22 @@
+---
+// “Page not found”, in both languages. GitHub Pages serves this for any missing address.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { useTranslations, localizedHref } from '../i18n/utils';
+
+const en = useTranslations('en');
+const it = useTranslations('it');
+---
+
+<BaseLayout title={en('404.title')}>
+  <div class="wrapper not-found">
+    <h1>{en('404.title')}</h1>
+    <p>{en('404.text')} <a href={localizedHref('/', 'en')}>{en('404.home')}</a>.</p>
+    <p lang="it">{it('404.text')} <a href={localizedHref('/', 'it')}>{it('404.home')}</a>.</p>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding-block: var(--space-xl);
+  }
+</style>

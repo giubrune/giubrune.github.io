@@ -1,0 +1,19 @@
+---
+// Temporary pages for every section until it is built. When a real page is added
+// (e.g. src/pages/research/index.astro), remove that section from the list below.
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { sections } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+
+export const getStaticPaths = (() =>
+  sections.map((s) => ({ params: { section: s.key }, props: { key: s.key } }))) satisfies GetStaticPaths;
+
+const t = useTranslations('en');
+const heading = t(`nav.${Astro.props.key}`);
+---
+
+<BaseLayout title={heading}>
+  <Placeholder heading={heading} />
+</BaseLayout>

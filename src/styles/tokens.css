@@ -1,0 +1,73 @@
+/*
+  Design tokens — the single place for colours, fonts, sizes and spacing.
+  Palette from CLAUDE.md §6. Contrast (WCAG AA) checked against the background:
+    text #232B2B ≈ 13:1, pore water #2B6A8C ≈ 5.5:1, loam #7D6340 ≈ 5.2:1.
+  Silt is for rules and patterns only, never for text.
+*/
+
+:root {
+  color-scheme: light dark;
+
+  /* Colour — light (“above the water table”) */
+  --color-bg: #f5f6f3;          /* mineral white */
+  --color-surface: #ecede8;     /* slightly darker panels */
+  --color-text: #232b2b;        /* graphite */
+  --color-text-muted: #4d5654;
+  --color-accent: #2b6a8c;      /* pore water: links, interactive, wetting front */
+  --color-accent-strong: #1f5170;
+  --color-loam: #7d6340;        /* secondary accent, soil horizons */
+  --color-silt: #c9c0a8;        /* rules, soil patterns, muted UI */
+  --color-root: #4f6f45;        /* company + plant content only */
+  --color-water-table: var(--color-accent);
+  --color-focus: #2b6a8c;
+
+  /* Type */
+  --font-body: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Fluid type scale (≈ 1.25 ratio), 360 px → 1280 px viewport */
+  --step--1: clamp(0.86rem, 0.84rem + 0.1vw, 0.9rem);
+  --step-0: clamp(1.06rem, 1.02rem + 0.18vw, 1.15rem);
+  --step-1: clamp(1.27rem, 1.2rem + 0.33vw, 1.45rem);
+  --step-2: clamp(1.52rem, 1.4rem + 0.55vw, 1.85rem);
+  --step-3: clamp(1.83rem, 1.62rem + 0.9vw, 2.4rem);
+  --step-4: clamp(2.2rem, 1.85rem + 1.5vw, 3.2rem);
+
+  --leading-body: 1.6;
+  --leading-tight: 1.2;
+  --measure: 68ch;               /* max line length for running text (≤ 75 characters) */
+
+  /* Space */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 5rem;
+
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+  --page-max: 72rem;
+
+  /* Lines */
+  --rule: 1px solid var(--color-silt);
+  --radius: 3px;
+  --focus-ring: 3px solid var(--color-focus);
+}
+
+/* Dark mode — “below the water table” */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #11191e;
+    --color-surface: #18232a;
+    --color-text: #e3e6e1;
+    --color-text-muted: #aab3b1;
+    --color-accent: #7fb6d4;
+    --color-accent-strong: #a8cfe4;
+    --color-loam: #c9a978;
+    --color-silt: #3c4a4f;
+    --color-root: #93b787;
+    --color-focus: #a8cfe4;
+  }
+}

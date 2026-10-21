@@ -1,0 +1,12 @@
+---
+// Home page (English). Placeholder until the hero is designed in phase 3.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Placeholder from '../components/Placeholder.astro';
+import { profile } from '../lib/profile';
+---
+
+<BaseLayout>
+  <Placeholder heading={profile.name}>
+    <p>{profile.role.en}, {profile.department.en}, {profile.institution.en}</p>
+  </Placeholder>
+</BaseLayout>

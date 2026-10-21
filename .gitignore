@@ -1,0 +1,20 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs and env
+npm-debug.log*
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+
+# source material (CV, photos) — kept out of the public repository
+reference/

@@ -1,0 +1,43 @@
+# Basic profile information, used in the header, footer, page titles and metadata.
+# Edit the text after the colon. Keep the quotes when a value contains a colon.
+# Leave a value empty ("") if you don't want it shown; lines marked TODO still need input.
+
+name: Giuseppe Brunetti
+
+role:
+  en: Associate Professor
+  it: Professore associato
+
+department:
+  en: Department of Civil Engineering
+  it: Dipartimento di Ingegneria Civile
+
+institution:
+  en: University of Calabria
+  it: Università della Calabria
+
+city: Rende, Italy
+
+email: giuseppe.brunetti@unical.it
+phone: "+39 0984 496576"
+
+# Short description used by search engines and link previews (about 150 characters).
+# TODO: confirm wording with Giuseppe.
+description:
+  en: "Vadose zone hydrologist and numerical modeler at the University of Calabria: water, solutes and contaminants in the unsaturated zone."
+  it: "Idrologo della zona vadosa e modellista numerico all’Università della Calabria: acqua, soluti e contaminanti nella zona insatura."
+
+# Research profiles. Leave the url empty ("") until it is known; empty ones are hidden.
+profiles:
+  - label: ORCID
+    url: https://orcid.org/0000-0001-7943-8088
+  - label: ResearcherID
+    url: https://www.webofscience.com/wos/author/record/Y-5359-2019
+  - label: Scopus
+    url: ""   # TODO
+  - label: Google Scholar
+    url: ""   # TODO
+  - label: GitHub
+    url: ""   # TODO
+  - label: LinkedIn
+    url: ""   # TODO
