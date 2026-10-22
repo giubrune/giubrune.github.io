@@ -7,7 +7,7 @@ export const SURFACE = 16;
 export const WATER_TABLE = 326;
 
 /** Small deterministic random number generator (mulberry32). */
-function rng(seed: number) {
+export function rng(seed: number) {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -18,10 +18,10 @@ function rng(seed: number) {
   };
 }
 
-const round = (n: number) => Math.round(n * 10) / 10;
+export const round = (n: number) => Math.round(n * 10) / 10;
 
 /** A gently undulating line: depth at x. */
-function wavy(base: number, amp: number, seed: number) {
+export function wavy(base: number, amp: number, seed: number) {
   const r = rng(seed);
   const waves = [0, 1, 2].map(() => ({ len: 90 + r() * 260, phase: r() * Math.PI * 2, w: 0.3 + r() * 0.7 }));
   const total = waves.reduce((s, w) => s + w.w, 0);
@@ -35,10 +35,10 @@ export const boundary2 = wavy(222, 8, 37); // subsoil → sand
 /** x positions every `step` units across the drawing. */
 const grid = (step: number) => Array.from({ length: WIDTH / step + 1 }, (_, i) => i * step);
 const COARSE = grid(20); // smooth lines: horizon boundaries, surface
-const FINE = grid(4); // wetting front: fingers need more detail
+export const FINE = grid(4); // wetting front: fingers need more detail
 
 /** SVG path along a line, left to right. */
-function along(f: (x: number) => number, xs = COARSE) {
+export function along(f: (x: number) => number, xs = COARSE) {
   return xs.map((x, i) => `${i ? 'L' : 'M'}${x} ${round(f(x))}`).join(' ');
 }
 
@@ -48,11 +48,11 @@ function back(f: (x: number) => number, xs = COARSE) {
 }
 
 /** Closed band between two lines. */
-function band(top: (x: number) => number, bottom: (x: number) => number, xs = COARSE) {
+export function band(top: (x: number) => number, bottom: (x: number) => number, xs = COARSE) {
   return `${along(top, xs)} ${back(bottom, xs)} Z`;
 }
 
-const flat = (y: number) => () => y;
+export const flat = (y: number) => () => y;
 
 /**
  * Final wetting front. Uniform in the fine layers; in the coarse sand it breaks into
@@ -122,7 +122,7 @@ function roots() {
 }
 
 /** Grain positions for a pattern tile. */
-function grains(seed: number, n: number, w: number, h: number, rMin: number, rMax: number) {
+export function grains(seed: number, n: number, w: number, h: number, rMin: number, rMax: number) {
   const r = rng(seed);
   return Array.from({ length: n }, () => ({
     cx: round(r() * w),
@@ -138,6 +138,7 @@ export const profile = {
   subsoil: band(boundary1, boundary2),
   sand: band(boundary2, flat(WATER_TABLE)),
   saturated: band(flat(WATER_TABLE), flat(HEIGHT)),
+  ground: band(surface, flat(HEIGHT)),
   surfaceLine: along(surface),
   boundary1Line: along(boundary1),
   boundary2Line: along(boundary2),

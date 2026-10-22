@@ -1,0 +1,193 @@
+---
+// Design alternative (variant B on /design-preview/): the profile drawn like simulation output.
+// Water content θ as a colour field from dry to saturated, thin layer boundaries,
+// a depth axis and a colour bar. Illustrative values, not a simulation.
+import { WIDTH, HEIGHT, SURFACE, WATER_TABLE, profile } from '../lib/soil-profile';
+import { thetaImage, thetaRampLight, thetaRampDark, cssGradient, THETA_MIN, THETA_MAX } from '../lib/soil-field';
+
+/** Drawing units per metre of depth. */
+const UNITS_PER_M = 100;
+const ticks = [0, 0.5, 1, 1.5, 2, 2.5, 3].map((d) => ({
+  label: d === 0 ? '0' : d.toFixed(1),
+  top: `${(((SURFACE + d * UNITS_PER_M) / HEIGHT) * 100).toFixed(2)}%`,
+}));
+const barTicks = [0.05, 0.15, 0.25, 0.35, 0.45].map((v) => ({
+  label: v.toFixed(2),
+  left: `${(((v - THETA_MIN) / (THETA_MAX - THETA_MIN)) * 100).toFixed(1)}%`,
+}));
+const fieldLight = thetaImage(thetaRampLight);
+const fieldDark = thetaImage(thetaRampDark);
+const wtX = WIDTH / 2 + 230;
+---
+
+<div class="sim">
+  <div class="axis" aria-hidden="true">
+    <span class="axis-title">Depth (m)</span>
+    {ticks.map((t) => <span class="tick" style={`top: ${t.top}`}>{t.label}</span>)}
+  </div>
+  <svg
+    class="field"
+    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+    preserveAspectRatio="xMidYMin slice"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <defs><clipPath id="sim-ground"><path d={profile.ground} /></clipPath></defs>
+    <image class="only-light" clip-path="url(#sim-ground)" href={fieldLight} x="0" y="0" width={WIDTH} height={HEIGHT} preserveAspectRatio="none" />
+    <image class="only-dark" clip-path="url(#sim-ground)" href={fieldDark} x="0" y="0" width={WIDTH} height={HEIGHT} preserveAspectRatio="none" />
+    <path class="layer-line" d={profile.boundary1Line} />
+    <path class="layer-line" d={profile.boundary2Line} />
+    <path class="surface" d={profile.surfaceLine} />
+    <line class="water-table" x1="0" y1={WATER_TABLE} x2={WIDTH} y2={WATER_TABLE} />
+    <path class="wt-symbol" d={`M${wtX - 9} ${WATER_TABLE - 15} L${wtX + 9} ${WATER_TABLE - 15} L${wtX} ${WATER_TABLE - 3} Z`} />
+  </svg>
+</div>
+
+<div class="wrapper legend">
+  <p class="legend-title">Water content θ (m³ m⁻³)</p>
+  <div class="bar-wrap">
+    <div class="bar only-light" style={`background: ${cssGradient(thetaRampLight)}`}></div>
+    <div class="bar only-dark" style={`background: ${cssGradient(thetaRampDark)}`}></div>
+    <div class="bar-ticks">
+      {barTicks.map((t) => <span style={`left: ${t.left}`}>{t.label}</span>)}
+    </div>
+  </div>
+  <p class="bar-ends"><span>dry</span><span>saturated</span></p>
+</div>
+
+<style>
+  .sim {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    border-top: 1px solid var(--color-text);
+  }
+
+  .axis {
+    position: relative;
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    border-right: 1px solid var(--color-text);
+  }
+
+  .axis-title {
+    position: absolute;
+    left: 0.15rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+  }
+
+  .tick {
+    position: absolute;
+    right: 0.45rem;
+    transform: translateY(-50%);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tick::after {
+    content: '';
+    position: absolute;
+    right: -0.45rem;
+    top: 50%;
+    width: 0.3rem;
+    border-top: 1px solid var(--color-text);
+  }
+
+  .field {
+    display: block;
+    width: 100%;
+    height: max(clamp(220px, 30vw, 400px), 22.5vw);
+  }
+
+  .layer-line {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 0.8;
+    opacity: 0.6;
+  }
+
+  .surface {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 1.2;
+  }
+
+  .water-table,
+  .wt-symbol {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 1.2;
+  }
+
+  .legend {
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    padding-top: var(--space-s);
+    padding-bottom: var(--space-s);
+  }
+
+  .legend-title {
+    margin: 0 0 var(--space-2xs);
+    color: var(--color-text);
+  }
+
+  .bar-wrap {
+    position: relative;
+    max-width: 22rem;
+  }
+
+  .bar {
+    height: 0.75rem;
+    border: 1px solid var(--color-text-muted);
+  }
+
+  .bar-ticks {
+    position: relative;
+    height: 1.4rem;
+  }
+
+  .bar-ticks span {
+    position: absolute;
+    top: 0.2rem;
+    transform: translateX(-50%);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bar-ends {
+    display: flex;
+    justify-content: space-between;
+    max-width: 22rem;
+    margin: 0;
+  }
+
+  /* Show the light or dark version of the field and colour bar. */
+  .only-dark {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .only-light {
+      display: none;
+    }
+    .only-dark {
+      display: block;
+    }
+  }
+
+  :global(.theme-light) .only-light {
+    display: block;
+  }
+  :global(.theme-light) .only-dark {
+    display: none;
+  }
+  :global(.theme-dark) .only-light {
+    display: none;
+  }
+  :global(.theme-dark) .only-dark {
+    display: block;
+  }
+</style>

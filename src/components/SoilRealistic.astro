@@ -1,0 +1,198 @@
+---
+// Design alternative (variants A and C on /design-preview/): a realistic soil profile with
+// stronger horizon colours, stones, roots, macropores and pores cut by the section.
+//   mode "a": the infiltrated water as a clear blue tint with a sharp wetting front.
+//   mode "c": the water as a vivid water-content gradient, with preferential flow along macropores.
+// Decorative: hidden from screen readers.
+import { WIDTH, HEIGHT, WATER_TABLE, profile } from '../lib/soil-profile';
+import { stones, macroporePaths, cutPores } from '../lib/soil-extras';
+import { waterOverlayImage } from '../lib/soil-field';
+
+interface Props {
+  id: string;
+  mode: 'a' | 'c';
+}
+
+const { id, mode } = Astro.props;
+const { tiles } = profile;
+const wtX = WIDTH / 2 + 230;
+const overlay = mode === 'c' ? waterOverlayImage() : '';
+---
+
+<svg
+  class="soil-real"
+  viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+  preserveAspectRatio="xMidYMin slice"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <pattern id={`${id}-fine`} width={tiles.fine.w} height={tiles.fine.h} patternUnits="userSpaceOnUse">
+      {tiles.fine.grains.map((g, i) => <circle class={i % 3 ? 'g-top-dark' : 'g-top-light'} cx={g.cx} cy={g.cy} r={g.rx} />)}
+    </pattern>
+    <pattern id={`${id}-dense`} width={tiles.dense.w} height={tiles.dense.h} patternUnits="userSpaceOnUse">
+      {tiles.dense.grains.map((g, i) => <circle class={i % 4 ? 'g-sub' : 'g-sub-light'} cx={g.cx} cy={g.cy} r={g.rx} />)}
+    </pattern>
+    <pattern id={`${id}-coarse`} width={tiles.coarse.w} height={tiles.coarse.h} patternUnits="userSpaceOnUse">
+      {
+        tiles.coarse.grains.map((g) => (
+          <ellipse class="pebble" cx={g.cx} cy={g.cy} rx={g.rx} ry={g.ry} transform={`rotate(${g.rot} ${g.cx} ${g.cy})`} />
+        ))
+      }
+    </pattern>
+    <clipPath id={`${id}-ground`}><path d={profile.ground} /></clipPath>
+    <clipPath id={`${id}-sand`}><path d={profile.sand} /></clipPath>
+  </defs>
+
+  <!-- Horizons -->
+  <path class="h-top" d={profile.topsoil} />
+  <path d={profile.topsoil} fill={`url(#${id}-fine)`} />
+  <path class="h-sub" d={profile.subsoil} />
+  <path d={profile.subsoil} fill={`url(#${id}-dense)`} />
+  <path class="h-sand" d={profile.sand} />
+  <path d={profile.sand} fill={`url(#${id}-coarse)`} />
+
+  <!-- Stones, pores, channels, roots -->
+  {stones.map((s) => <path class:list={['stone', { large: s.large }]} d={s.d} />)}
+  {cutPores.map((p) => <ellipse class="cut-pore" cx={p.cx} cy={p.cy} rx={p.rx} ry={p.ry} />)}
+  {macroporePaths.map((m) => <path class="macropore" d={m.d} stroke-width={m.width} />)}
+  {profile.roots.map((r) => <path class:list={['root', { branch: !r.main }]} d={r.d} />)}
+
+  <path class="boundary" d={profile.boundary1Line} />
+  <path class="boundary" d={profile.boundary2Line} />
+
+  <!-- Water -->
+  {
+    mode === 'a' ? (
+      <>
+        <path class="wet" d={profile.wet} />
+        <path class="wet-sand" d={profile.wet} clip-path={`url(#${id}-sand)`} />
+        <path class="front" d={profile.frontLine} />
+        <path class="saturated" d={profile.saturated} />
+      </>
+    ) : (
+      <>
+        <image clip-path={`url(#${id}-ground)`} href={overlay} x="0" y="0" width={WIDTH} height={HEIGHT} preserveAspectRatio="none" />
+        {macroporePaths
+          .filter((m) => m.deep)
+          .map((m) => (
+            <path class="macropore-water" d={m.d} stroke-width={Math.max(1, m.width - 0.8)} />
+          ))}
+      </>
+    )
+  }
+
+  <path class="surface" d={profile.surfaceLine} />
+  <line class="water-table" x1="0" y1={WATER_TABLE} x2={WIDTH} y2={WATER_TABLE} />
+  <path class="wt-symbol" d={`M${wtX - 9} ${WATER_TABLE - 15} L${wtX + 9} ${WATER_TABLE - 15} L${wtX} ${WATER_TABLE - 3} Z`} />
+  <line class="water-table" x1={wtX - 7} y1={WATER_TABLE + 6} x2={wtX + 7} y2={WATER_TABLE + 6} />
+  <line class="water-table" x1={wtX - 4} y1={WATER_TABLE + 11} x2={wtX + 4} y2={WATER_TABLE + 11} />
+</svg>
+
+<style>
+  .soil-real {
+    /* Realistic soil colours: the same in light and dark mode. */
+    --top: #5f4a33;
+    --top-grain-dark: #3f3022;
+    --top-grain-light: #8c7252;
+    --sub: #a5784b;
+    --sub-grain: #7f5934;
+    --sub-grain-light: #c69a68;
+    --sand: #d8c69c;
+    --pebble: #e7dab9;
+    --pebble-edge: #a8916a;
+    --stone: #9a958a;
+    --stone-large: #85806f;
+    --stone-edge: #5b574d;
+    --pore: #24190f;
+    --root: #e3d2aa;
+    --water: #2a86d1;
+    --water-deep: #1866b4;
+
+    display: block;
+    width: 100%;
+    height: max(clamp(220px, 30vw, 400px), 22.5vw);
+  }
+
+  .h-top { fill: var(--top); }
+  .h-sub { fill: var(--sub); }
+  .h-sand { fill: var(--sand); }
+
+  .g-top-dark { fill: var(--top-grain-dark); }
+  .g-top-light { fill: var(--top-grain-light); }
+  .g-sub { fill: var(--sub-grain); opacity: 0.8; }
+  .g-sub-light { fill: var(--sub-grain-light); }
+  .pebble {
+    fill: var(--pebble);
+    stroke: var(--pebble-edge);
+    stroke-width: 1.2;
+  }
+
+  .stone {
+    fill: var(--stone);
+    stroke: var(--stone-edge);
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+  }
+  .stone.large { fill: var(--stone-large); }
+
+  .cut-pore { fill: var(--pore); opacity: 0.85; }
+
+  .macropore {
+    fill: none;
+    stroke: var(--pore);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.9;
+  }
+
+  .macropore-water {
+    fill: none;
+    stroke: var(--water-deep);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .root {
+    fill: none;
+    stroke: var(--root);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+  .root.branch { stroke-width: 0.9; }
+
+  .boundary {
+    fill: none;
+    stroke: var(--top-grain-dark);
+    stroke-width: 1;
+    opacity: 0.35;
+  }
+
+  .surface {
+    fill: none;
+    stroke: var(--top-grain-dark);
+    stroke-width: 3;
+  }
+
+  /* Light tint over the darker horizons, so their colours stay readable; clear blue in the sand. */
+  .wet { fill: var(--water); opacity: 0.12; }
+  .wet-sand { fill: var(--water); opacity: 0.38; }
+  .front {
+    fill: none;
+    stroke: var(--water-deep);
+    stroke-width: 2;
+  }
+  .saturated { fill: var(--water); opacity: 0.6; }
+
+  .water-table {
+    stroke: var(--water-deep);
+    stroke-width: 2.5;
+  }
+  .wt-symbol {
+    fill: none;
+    stroke: var(--water-deep);
+    stroke-width: 1.8;
+  }
+</style>

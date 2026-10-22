@@ -4,6 +4,8 @@
 import { getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SoilProfile from '../components/SoilProfile.astro';
+import SoilRealistic from '../components/SoilRealistic.astro';
+import SoilSimulation from '../components/SoilSimulation.astro';
 import { profile } from '../lib/profile';
 
 const home = await getEntry('pages', 'en/home');
@@ -21,6 +23,29 @@ const swatches = [
   { token: '--soil-topsoil', name: 'Topsoil', use: 'Hero drawing' },
   { token: '--soil-subsoil', name: 'Subsoil', use: 'Hero drawing' },
   { token: '--soil-sand', name: 'Sand', use: 'Hero drawing' },
+];
+
+const variants = [
+  {
+    key: 'current',
+    label: 'Current',
+    note: 'Pale horizons with fine textures, a light blue tint for the infiltrated water, fingers in the sand.',
+  },
+  {
+    key: 'a',
+    label: 'A: richer realistic soil',
+    note: 'Stronger horizon colours, stones, pale roots, dark macropores (earthworm and root channels) and pores cut by the section; the infiltrated water in a clearer blue with a sharp wetting front.',
+  },
+  {
+    key: 'b',
+    label: 'B: simulation output',
+    note: 'Water content θ as a colour field from dry to saturated, thin layer boundaries, a depth axis and a colour bar. The values are illustrative, not a real simulation.',
+  },
+  {
+    key: 'c',
+    label: 'C: realistic soil with a water-content gradient',
+    note: 'The soil of A, with the water as a vivid gradient: deeper blue where wetter. The matrix front stays shallow, while water runs down the macropores and wets the soil around them (preferential flow).',
+  },
 ];
 
 const steps = [5, 4, 3, 2, 1, 0, -1];
@@ -41,35 +66,48 @@ const themes = [
   </div>
 
   <section aria-labelledby="hero-heading">
-    <div class="wrapper"><h2 id="hero-heading">Hero (static, finished picture)</h2></div>
+    <div class="wrapper">
+      <h2 id="hero-heading">Hero (static, finished picture)</h2>
+      <p>
+        Four versions of the soil profile with the same text: the current one, then A, B and C. Each is shown in light
+        and dark mode. On the home page the chosen one will be animated once per session (about 5 seconds).
+      </p>
+      <nav class="jump" aria-label="Hero versions">
+        {variants.map((v) => <a href={`#hero-${v.key}`}>{v.label}</a>)}
+      </nav>
+    </div>
     {
-      themes.map((t) => (
-        <div class:list={[t.cls, 'hero-demo']}>
+      variants.map((v) => (
+        <div class="variant" id={`hero-${v.key}`}>
           <div class="wrapper">
-            <p class="theme-label">{t.label}</p>
-            <div class="hero-text">
-              <p class="hero-name">{profile.name}</p>
-              <p class="hero-role">
-                {profile.role.en}
-                <br />
-                {profile.department.en}
-                <br />
-                {profile.institution.en}
-              </p>
-              <p class="hero-statement">{statement}</p>
-            </div>
+            <h3 class="variant-title">{v.label}</h3>
+            <p class="variant-note">{v.note}</p>
           </div>
-          <SoilProfile id={`soil-${t.cls}`} />
+          {themes.map((t) => (
+            <div class:list={[t.cls, "hero-demo"]}>
+              <div class="wrapper">
+                <p class="theme-label">{t.label}</p>
+                <div class="hero-text">
+                  <p class="hero-name">{profile.name}</p>
+                  <p class="hero-role">
+                    {profile.role.en}
+                    <br />
+                    {profile.department.en}
+                    <br />
+                    {profile.institution.en}
+                  </p>
+                  <p class="hero-statement">{statement}</p>
+                </div>
+              </div>
+              {v.key === "current" && <SoilProfile id={`soil-${t.cls}`} />}
+              {v.key === "a" && <SoilRealistic id={`real-a-${t.cls}`} mode="a" />}
+              {v.key === "b" && <SoilSimulation />}
+              {v.key === "c" && <SoilRealistic id={`real-c-${t.cls}`} mode="c" />}
+            </div>
+          ))}
         </div>
       ))
     }
-    <div class="wrapper">
-      <p class="note">
-        Topsoil with fine grains and roots, subsoil with dense small grains, coarse sand, and the water table with its
-        symbol (▽). The blue tint is the water that has infiltrated; in the sand the front breaks into fingers. On the
-        home page this will be animated once per session (about 5 seconds).
-      </p>
-    </div>
   </section>
 
   <section class="wrapper" aria-labelledby="palette-heading">
@@ -191,6 +229,28 @@ const themes = [
   }
 
   /* Hero */
+  .jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-m);
+    font-family: var(--font-ui);
+    margin-bottom: var(--space-l);
+  }
+
+  .variant {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .variant-title {
+    font-size: var(--step-3);
+    margin: var(--space-xl) 0 var(--space-2xs);
+  }
+
+  .variant-note {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-m);
+  }
+
   .hero-demo {
     border-top: var(--rule);
   }
