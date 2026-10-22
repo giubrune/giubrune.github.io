@@ -1,6 +1,6 @@
 # Design plan (phase 3) — for approval
 
-Status: **draft, waiting for Giuseppe’s approval.** Preview in the browser at `/design-preview/` (temporary page).
+Status: **superseded (2026-10-22).** The hero is now the realistic soil profile with plants and solutes, static (see the decision log in CLAUDE.md). Colours, type and layout below still apply.
 
 Decided so far (2026-10-21): text above the soil; animation about 5 s, only on the first visit of a browser session (finished picture after that); entry-point texts drafted from cv.md and CLAUDE.md, marked TODO; no “·” separators anywhere: use line breaks or spacing.
 

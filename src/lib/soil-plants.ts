@@ -1,4 +1,4 @@
-// Plants on the soil surface (variant C on /design-preview/): stems, leaves, fruits and
+// Plants on the soil surface in the hero drawing: stems, leaves, fruits and
 // root systems, plus the paths along which solute is taken up into the plant.
 // Stylised, deterministic, computed at build time. y < surface is above ground.
 import { rng, round, surface, boundary1, boundary2 } from './soil-profile';

@@ -1,0 +1,200 @@
+---
+// Short web CV from the YAML files in src/data/ and the bio in src/content/pages/en/bio.md.
+// The PDF link appears only when public/cv/Brunetti_CV.pdf exists.
+import { existsSync } from 'node:fs';
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { publications } from '../lib/publications';
+import { period } from '../lib/format';
+import { href } from '../lib/url';
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations('en');
+const bio = await getEntry('pages', 'en/bio');
+const { Content: Bio } = bio ? await render(bio) : { Content: null };
+const byId = (a: { id: string }, b: { id: string }) => Number(a.id) - Number(b.id);
+const career = (await getCollection('career')).sort(byId);
+const education = (await getCollection('education')).sort(byId);
+const awards = (await getCollection('awards')).sort(byId);
+const service = (await getCollection('service')).sort(byId);
+const conferences = (await getCollection('conferences')).sort(byId);
+const chairing = conferences.filter((c) => ['convener', 'co-convener', 'chair'].includes(c.data.type));
+const talks = conferences.filter((c) => ['keynote', 'invited'].includes(c.data.type));
+const hasPdf = existsSync('public/cv/Brunetti_CV.pdf');
+---
+
+<BaseLayout title={t('nav.cv')} description={t('cv.description')}>
+  <div class="wrapper page">
+    <h1>{t('nav.cv')}</h1>
+    {Bio && <div class="prose lede-text"><Bio /></div>}
+    {hasPdf && <p class="download"><a href={href('/cv/Brunetti_CV.pdf')}>{t('cv.download')}</a></p>}
+
+    <section aria-labelledby="cv-positions">
+      <h2 id="cv-positions" class="section-title">{t('cv.positions')}</h2>
+      <dl class="timeline">
+        {
+          career.map((c) => (
+            <>
+              <dt>{period(c.data.start, c.data.end)}</dt>
+              <dd>
+                <strong>{c.data.title}</strong>
+                <br />
+                {[c.data.unit, c.data.institution, c.data.place].filter(Boolean).join(', ')}
+                {c.data.note && <span class="meta note">{c.data.note}</span>}
+              </dd>
+            </>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby="cv-education">
+      <h2 id="cv-education" class="section-title">{t('cv.education')}</h2>
+      <dl class="timeline">
+        {
+          education.map((e) => (
+            <>
+              <dt>{e.data.start ? period(e.data.start, e.data.end) : e.data.end}</dt>
+              <dd>
+                <strong>{e.data.degree}</strong>
+                {e.data.field && `, ${e.data.field}`}
+                <br />
+                {[e.data.institution, e.data.place].filter(Boolean).join(', ')}
+                {e.data.note && <span class="meta note">{e.data.note}</span>}
+              </dd>
+            </>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby="cv-awards">
+      <h2 id="cv-awards" class="section-title">{t('cv.awards')}</h2>
+      <dl class="timeline">
+        {
+          awards.map((a) => (
+            <>
+              <dt>{a.data.year}</dt>
+              <dd>
+                <strong>{a.data.url ? <a href={a.data.url}>{a.data.title}</a> : a.data.title}</strong>
+                {(a.data.by || a.data.place) && (
+                  <>
+                    <br />
+                    {[a.data.by, a.data.place].filter(Boolean).join(', ')}
+                  </>
+                )}
+                {a.data.note && <span class="meta note">{a.data.note}</span>}
+              </dd>
+            </>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby="cv-service">
+      <h2 id="cv-service" class="section-title">{t('cv.service')}</h2>
+      {
+        service.map((s) => (
+          <>
+            <h3 class="group-title">{s.data.role}</h3>
+            <p>{s.data.items.join('; ')}</p>
+          </>
+        ))
+      }
+    </section>
+
+    <section aria-labelledby="cv-conferences">
+      <h2 id="cv-conferences" class="section-title">{t('cv.conferences')}</h2>
+      <dl class="timeline">
+        {
+          chairing.map((c) => (
+            <>
+              <dt>{c.data.year}</dt>
+              <dd>
+                {t(`cv.role.${c.data.type}`)}
+                {c.data.type !== 'chair' && <>, “{c.data.title}”</>}
+                <br />
+                {[c.data.event, c.data.place].filter(Boolean).join(', ')}
+              </dd>
+            </>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby="cv-talks">
+      <h2 id="cv-talks" class="section-title">{t('cv.talks')}</h2>
+      <dl class="timeline">
+        {
+          talks.map((c) => (
+            <>
+              <dt>{c.data.year}</dt>
+              <dd>
+                {t(`cv.role.${c.data.type}`)}, “{c.data.title}”
+                <br />
+                {[c.data.event, c.data.place].filter(Boolean).join(', ')}
+              </dd>
+            </>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section aria-labelledby="cv-pubs">
+      <h2 id="cv-pubs" class="section-title">{t('cv.publications')}</h2>
+      <p>
+        {publications.length}
+        {t('pubs.total')}. <a href={href('/publications/')}>{t('cv.publicationsLink')}</a>
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .lede-text {
+    max-width: var(--measure);
+  }
+
+  .download {
+    font-family: var(--font-ui);
+  }
+
+  .timeline {
+    display: grid;
+    grid-template-columns: 8.5rem 1fr;
+    gap: var(--space-s) var(--space-m);
+    margin: 0;
+    max-width: 60rem;
+  }
+
+  .timeline dt {
+    font-family: var(--font-ui);
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timeline dd {
+    margin: 0;
+  }
+
+  .note {
+    display: block;
+    margin-top: var(--space-3xs);
+  }
+
+  .group-title {
+    font-size: var(--step-0);
+    margin: var(--space-m) 0 var(--space-3xs);
+  }
+
+  @media (max-width: 36rem) {
+    .timeline {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .timeline dd {
+      margin-bottom: var(--space-s);
+    }
+  }
+</style>

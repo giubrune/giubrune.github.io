@@ -1,0 +1,68 @@
+---
+// People: group members, alumni and collaborators from src/content/people/.
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { period } from '../lib/format';
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations('en');
+const people = await Promise.all(
+  (await getCollection('people'))
+    .sort((a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name))
+    .map(async (p) => ({ ...p, Content: (await render(p)).Content })),
+);
+const groups = (['current', 'alumni', 'collaborator'] as const)
+  .map((g) => ({ key: g, title: t(`people.${g}`), items: people.filter((p) => p.data.group === g) }))
+  .filter((g) => g.items.length > 0);
+---
+
+<BaseLayout title={t('nav.people')} description={t('people.description')}>
+  <div class="wrapper page">
+    <h1>{t('nav.people')}</h1>
+    {
+      groups.map((g) => (
+        <section aria-labelledby={`people-${g.key}`}>
+          <h2 id={`people-${g.key}`} class="section-title">
+            {g.title}
+          </h2>
+          <ul class="entries">
+            {g.items.map((p) => (
+              <li class="person">
+                {p.data.photo && <Image class="photo" src={p.data.photo} alt="" width={96} height={96} />}
+                <div>
+                  <h3>{p.data.url ? <a href={p.data.url}>{p.data.name}</a> : p.data.name}</h3>
+                  <p class="meta">
+                    {[p.data.role, p.data.affiliation, p.data.start ? period(p.data.start, p.data.end) : undefined]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                  {p.data.topic && <p>{p.data.topic}</p>}
+                  <div class="prose">
+                    <p.Content />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .person {
+    display: flex;
+    gap: var(--space-m);
+    align-items: start;
+  }
+
+  .photo {
+    flex: none;
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+</style>

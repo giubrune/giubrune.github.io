@@ -6,22 +6,12 @@ import { defineCollection, reference } from 'astro:content';
 import { glob, file } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { parse } from 'yaml';
+import { publicationTags } from './lib/tags';
 
 // ---------------------------------------------------------------------------
 // Shared field types
 // ---------------------------------------------------------------------------
 
-/** Research tags used in publications.bib `keywords` (besides `selected` and `hidden`). */
-export const publicationTags = [
-  'vadose',
-  'plant',
-  'bayesian',
-  'contaminants',
-  'urban',
-  'mar',
-  'energy',
-  'hydrus',
-] as const;
 
 /** Text in English with an optional Italian translation. */
 const localized = z.object({
@@ -220,6 +210,15 @@ const pages = defineCollection({
     description: z.string().optional(),
     /** Home page only: the one-sentence research statement shown in the hero. */
     statement: z.string().optional(),
+    /** Home page only: one short text for each entry point below the hero. */
+    entryPoints: z
+      .array(
+        z.object({
+          section: z.enum(['research', 'software', 'teaching', 'company']),
+          text: z.string().min(1),
+        }),
+      )
+      .optional(),
   }),
 });
 

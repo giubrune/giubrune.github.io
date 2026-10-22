@@ -1,5 +1,6 @@
-// Geometry of the soil-profile drawing (hero). Computed at build time from a fixed seed,
-// so the picture is identical on every build. Units are SVG user units.
+// Geometry of the soil profile in the home-page hero. Computed at build time from fixed
+// seeds, so the picture is identical on every build. Units are SVG user units;
+// y grows downwards and y < surface is above ground.
 
 export const WIDTH = 1600;
 export const HEIGHT = 360;
@@ -32,63 +33,22 @@ export const surface = wavy(SURFACE, 3, 11);
 export const boundary1 = wavy(122, 9, 23); // topsoil → subsoil
 export const boundary2 = wavy(222, 8, 37); // subsoil → sand
 
-/** x positions every `step` units across the drawing. */
-const grid = (step: number) => Array.from({ length: WIDTH / step + 1 }, (_, i) => i * step);
-const COARSE = grid(20); // smooth lines: horizon boundaries, surface
-export const FINE = grid(4); // wetting front: fingers need more detail
+const XS = Array.from({ length: WIDTH / 20 + 1 }, (_, i) => i * 20);
 
 /** SVG path along a line, left to right. */
-export function along(f: (x: number) => number, xs = COARSE) {
-  return xs.map((x, i) => `${i ? 'L' : 'M'}${x} ${round(f(x))}`).join(' ');
-}
-
-/** SVG path along a line, right to left (to close a band). */
-function back(f: (x: number) => number, xs = COARSE) {
-  return [...xs].reverse().map((x) => `L${x} ${round(f(x))}`).join(' ');
+function along(f: (x: number) => number) {
+  return XS.map((x, i) => `${i ? 'L' : 'M'}${x} ${round(f(x))}`).join(' ');
 }
 
 /** Closed band between two lines. */
-export function band(top: (x: number) => number, bottom: (x: number) => number, xs = COARSE) {
-  return `${along(top, xs)} ${back(bottom, xs)} Z`;
+function band(top: (x: number) => number, bottom: (x: number) => number) {
+  const back = [...XS].reverse().map((x) => `L${x} ${round(bottom(x))}`).join(' ');
+  return `${along(top)} ${back} Z`;
 }
 
-export const flat = (y: number) => () => y;
+const flat = (y: number) => () => y;
 
-/**
- * Final wetting front. Uniform in the fine layers; in the coarse sand it breaks into
- * fingers (preferential flow), the deepest stopping just above the water table.
- */
-const fingers = (() => {
-  const r = rng(53);
-  const out: { x: number; width: number; depth: number }[] = [];
-  let x = 20 + r() * 60;
-  while (x < WIDTH) {
-    // Mostly short fingers, a few long ones; spacing and width vary.
-    const depth = r() < 0.3 ? 0.75 + r() * 0.25 : 0.15 + r() * 0.45;
-    out.push({ x, width: 7 + r() * 16, depth });
-    x += 55 + r() * 120;
-  }
-  return out;
-})();
-
-const frontWobble = wavy(0, 4, 61);
-
-/** Depth reached by one finger at x: rounded tip, steep sides, slight funnel at the top. */
-function finger(x: number, f: { x: number; width: number; depth: number }) {
-  const u = Math.abs(x - f.x) / f.width;
-  const column = u < 1 ? Math.sqrt(1 - u * u) : 0;
-  const funnel = 0.18 * Math.exp(-((u / 2.4) ** 2));
-  return f.depth * Math.max(column, funnel);
-}
-
-export function wettingFront(x: number) {
-  const start = boundary2(x) + 12 + frontWobble(x);
-  const room = WATER_TABLE - 8 - start;
-  const reach = fingers.reduce((m, f) => Math.max(m, finger(x, f)), 0);
-  return Math.min(WATER_TABLE - 8, start + room * reach);
-}
-
-/** Roots: a few branching lines from the surface into the topsoil. */
+/** Fine roots: a few branching lines from the surface into the topsoil. */
 function roots() {
   const r = rng(71);
   const out: { d: string; main: boolean }[] = [];
@@ -122,28 +82,24 @@ function roots() {
 }
 
 /** Grain positions for a pattern tile. */
-export function grains(seed: number, n: number, w: number, h: number, rMin: number, rMax: number) {
+function grains(seed: number, n: number, w: number, h: number, rMin: number, rMax: number) {
   const r = rng(seed);
-  return Array.from({ length: n }, () => ({
-    cx: round(r() * w),
-    cy: round(r() * h),
-    rx: round(rMin + r() * (rMax - rMin)),
-    ry: 0,
-    rot: Math.round(r() * 180),
-  })).map((g) => ({ ...g, ry: round(g.rx * (0.65 + rng(g.cx * 7 + g.cy)() * 0.35)) }));
+  return Array.from({ length: n }, () => {
+    const cx = round(r() * w);
+    const cy = round(r() * h);
+    const rx = round(rMin + r() * (rMax - rMin));
+    return { cx, cy, rx, ry: round(rx * (0.65 + r() * 0.35)), rot: Math.round(r() * 180) };
+  });
 }
 
 export const profile = {
   topsoil: band(surface, boundary1),
   subsoil: band(boundary1, boundary2),
   sand: band(boundary2, flat(WATER_TABLE)),
-  saturated: band(flat(WATER_TABLE), flat(HEIGHT)),
   ground: band(surface, flat(HEIGHT)),
   surfaceLine: along(surface),
   boundary1Line: along(boundary1),
   boundary2Line: along(boundary2),
-  wet: band(surface, wettingFront, FINE),
-  frontLine: along(wettingFront, FINE),
   roots: roots(),
   tiles: {
     fine: { w: 120, h: 80, grains: grains(101, 46, 120, 80, 0.7, 1.5) },

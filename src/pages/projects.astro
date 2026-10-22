@@ -1,0 +1,111 @@
+---
+// Funded projects from src/content/projects/, current first, then past.
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { period } from '../lib/format';
+import { href } from '../lib/url';
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations('en');
+const all = await Promise.all(
+  (await getCollection('projects'))
+    .sort((a, b) => b.data.start - a.data.start || a.data.title.localeCompare(b.data.title))
+    .map(async (p) => ({ ...p, Content: (await render(p)).Content })),
+);
+const themeTitle = Object.fromEntries((await getCollection('research')).map((r) => [r.id, r.data.title]));
+const groups = [
+  { key: 'current', title: t('projects.current'), items: all.filter((p) => p.data.status === 'current') },
+  { key: 'past', title: t('projects.past'), items: all.filter((p) => p.data.status === 'past') },
+].filter((g) => g.items.length > 0);
+---
+
+<BaseLayout title={t('nav.projects')} description={t('projects.description')}>
+  <div class="wrapper page">
+    <h1>{t('nav.projects')}</h1>
+    {
+      groups.map((g) => (
+        <section aria-labelledby={`projects-${g.key}`}>
+          <h2 id={`projects-${g.key}`} class="section-title">
+            {g.title}
+          </h2>
+          <ul class="entries">
+            {g.items.map((p) => (
+              <li id={p.id}>
+                <h3>
+                  {p.data.acronym && <span class="acronym">{p.data.acronym}</span>}
+                  {p.data.url ? <a href={p.data.url}>{p.data.title}</a> : p.data.title}
+                </h3>
+                <dl class="facts meta">
+                  <div>
+                    <dt>{t('projects.role')}</dt>
+                    <dd>{p.data.role}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('projects.funder')}</dt>
+                    <dd>{p.data.funder}</dd>
+                  </div>
+                  <div>
+                    <dt class="visually-hidden">Period</dt>
+                    <dd>{period(p.data.start, p.data.end)}</dd>
+                  </div>
+                  {p.data.partners.length > 0 && (
+                    <div>
+                      <dt>{t('projects.partners')}</dt>
+                      <dd>{p.data.partners.join(', ')}</dd>
+                    </div>
+                  )}
+                </dl>
+                <div class="prose">
+                  <p.Content />
+                </div>
+                {p.data.themes.length > 0 && (
+                  <ul class="link-row themes">
+                    {p.data.themes.map((r) => (
+                      <li>
+                        <a href={href(`/research/${r.id}/`)}>{themeTitle[r.id]}</a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .acronym {
+    display: block;
+    font-size: var(--step--1);
+    color: var(--color-loam);
+    margin-bottom: var(--space-3xs);
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs) var(--space-l);
+    margin: var(--space-2xs) 0 var(--space-s);
+  }
+
+  .facts dt {
+    display: inline;
+    font-weight: 600;
+  }
+
+  .facts dt::after {
+    content: ' ';
+  }
+
+  .facts dd {
+    display: inline;
+    margin: 0;
+  }
+
+  .themes {
+    font-size: var(--step--1);
+  }
+</style>

@@ -6,7 +6,7 @@
 
   Colours are defined twice: light and dark. The page follows the visitor’s system
   setting; the classes .theme-light / .theme-dark force one theme on any element
-  (used on /design-preview/). Keep the two dark blocks below identical.
+  (e.g. to show both side by side). Keep the two dark blocks below identical.
 */
 
 :root,
@@ -25,14 +25,6 @@
   --color-root: #4f6f45;        /* company + plant content only */
   --color-focus: #2b6a8c;
 
-  /* Soil profile (hero) — decorative only */
-  --soil-topsoil: #d3c6a6;
-  --soil-subsoil: #e0d8c4;
-  --soil-sand: #ebe5d6;
-  --soil-grain: #7d6340;
-  --soil-grain-light: #b3a383;
-  --soil-root: #6b5536;
-  --soil-water: #2b6a8c;
 }
 
 /* Dark mode — “below the water table” */
@@ -49,13 +41,6 @@
     --color-silt: #3c4a4f;
     --color-root: #93b787;
     --color-focus: #a8cfe4;
-    --soil-topsoil: #2c2b24;
-    --soil-subsoil: #242828;
-    --soil-sand: #1d2427;
-    --soil-grain: #9c8763;
-    --soil-grain-light: #5a5446;
-    --soil-root: #a68d65;
-    --soil-water: #7fb6d4;
   }
 }
 
@@ -71,13 +56,6 @@
   --color-silt: #3c4a4f;
   --color-root: #93b787;
   --color-focus: #a8cfe4;
-  --soil-topsoil: #2c2b24;
-  --soil-subsoil: #242828;
-  --soil-sand: #1d2427;
-  --soil-grain: #9c8763;
-  --soil-grain-light: #5a5446;
-  --soil-root: #a68d65;
-  --soil-water: #7fb6d4;
 }
 
 /* A forced-theme section paints its own background. */

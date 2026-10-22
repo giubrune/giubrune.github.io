@@ -1,0 +1,76 @@
+---
+// Teaching page body, shared by /teaching/ and /it/teaching/.
+// Intro: src/content/pages/<lang>/teaching.md. Courses: src/content/teaching/.
+import { getCollection, getEntry, render } from 'astro:content';
+import { period } from '../lib/format';
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const intro = (await getEntry('pages', `${lang}/teaching`)) ?? (await getEntry('pages', 'en/teaching'));
+const { Content } = intro ? await render(intro) : { Content: null };
+const courses = (await getCollection('teaching')).sort(
+  (a, b) => (b.data.end === 'present' ? 9999 : b.data.end) - (a.data.end === 'present' ? 9999 : a.data.end) || b.data.start - a.data.start,
+);
+const groups = [
+  { key: 'current', title: t('teaching.current'), items: courses.filter((c) => c.data.end === 'present') },
+  { key: 'past', title: t('teaching.past'), items: courses.filter((c) => c.data.end !== 'present') },
+].filter((g) => g.items.length > 0);
+const text = (v: { en: string; it?: string } | undefined) => (v ? (lang === 'it' && v.it) || v.en : undefined);
+---
+
+<div class="wrapper page">
+  <h1>{intro?.data.title ?? t('nav.teaching')}</h1>
+  {Content && <div class="prose lede"><Content /></div>}
+
+  {
+    groups.map((g) => (
+      <section aria-labelledby={`teaching-${g.key}`}>
+        <h2 id={`teaching-${g.key}`} class="section-title">
+          {g.title}
+        </h2>
+        <ul class="entries">
+          {g.items.map((c) => {
+            const facts = [
+              c.data.role !== 'lecturer' ? t(`teaching.role.${c.data.role}`) : undefined,
+              c.data.level ? t(`teaching.level.${c.data.level}`) : undefined,
+              c.data.language ? t(`teaching.language.${c.data.language}`) : undefined,
+            ].filter(Boolean);
+            return (
+              <li>
+                <h3>{text(c.data.title)}</h3>
+                <p class="meta">
+                  {c.data.institution}
+                  {c.data.place && `, ${c.data.place}`}
+                  <br />
+                  {period(c.data.start, c.data.end, lang)}
+                  {facts.length > 0 && (
+                    <>
+                      <br />
+                      {facts.join(', ')}
+                    </>
+                  )}
+                </p>
+                {c.data.description && <p>{text(c.data.description)}</p>}
+                {c.data.materials.length > 0 && (
+                  <ul class="link-row">
+                    {c.data.materials.map((m) => (
+                      <li>
+                        <a href={m.url}>{m.label}</a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  }
+</div>

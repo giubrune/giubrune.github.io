@@ -1,0 +1,12 @@
+---
+// Teaching page (English). See src/components/TeachingPage.astro.
+import { getEntry } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TeachingPage from '../components/TeachingPage.astro';
+
+const page = await getEntry('pages', 'en/teaching');
+---
+
+<BaseLayout title={page?.data.title} description={page?.data.description}>
+  <TeachingPage lang="en" />
+</BaseLayout>

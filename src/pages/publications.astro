@@ -1,0 +1,226 @@
+---
+// Publications, from src/data/publications.bib: count, per-year chart, filters, list by year.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PublicationItem from '../components/PublicationItem.astro';
+import { publications, byYear } from '../lib/publications';
+import { publicationTags } from '../lib/tags';
+import { href } from '../lib/url';
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations('en');
+const groups = byYear(publications);
+const types = (['article', 'chapter', 'conference'] as const).filter((ty) => publications.some((p) => p.type === ty));
+const tags = publicationTags.filter((tag) => publications.some((p) => p.tags.includes(tag)));
+
+// Per-year bar chart (inline SVG, oldest year on the left).
+const years = groups.map((g) => g.year).sort((a, b) => a - b);
+const first = years[0];
+const last = years[years.length - 1];
+const span = Array.from({ length: last - first + 1 }, (_, i) => first + i);
+const counts = span.map((y) => publications.filter((p) => p.year === y).length);
+const max = Math.max(...counts);
+const BAR = 22;
+const GAP = 8;
+const CHART_H = 90;
+const chartW = span.length * (BAR + GAP);
+---
+
+<BaseLayout title={t('nav.publications')} description={t('pubs.description')}>
+  <div class="wrapper page">
+    <h1>{t('nav.publications')}</h1>
+    <p class="lede"><strong>{publications.length}</strong> {t('pubs.total')}</p>
+
+    <figure class="chart">
+      <svg viewBox={`0 -16 ${chartW} ${CHART_H + 38}`} role="img" aria-labelledby="chart-title">
+        <title id="chart-title">
+          {t('pubs.perYear')}: {span.map((y, i) => `${y} ${counts[i]}`).join(', ')}
+        </title>
+        {
+          span.map((y, i) => {
+            const h = counts[i] ? (counts[i] / max) * CHART_H : 0;
+            const x = i * (BAR + GAP);
+            return (
+              <g>
+                <rect x={x} y={CHART_H - h} width={BAR} height={h} />
+                {counts[i] > 0 && (
+                  <text class="count" x={x + BAR / 2} y={CHART_H - h - 4}>
+                    {counts[i]}
+                  </text>
+                )}
+                {(i % 2 === 0 || i === span.length - 1) && (
+                  <text class="year" x={x + BAR / 2} y={CHART_H + 16}>
+                    {y}
+                  </text>
+                )}
+              </g>
+            );
+          })
+        }
+      </svg>
+      <figcaption class="meta">{t('pubs.perYear')}</figcaption>
+    </figure>
+
+    <form class="filters" aria-label={t('pubs.filters')} data-filters hidden>
+      <label>
+        <span>{t('pubs.theme')}</span>
+        <select name="tag">
+          <option value="">{t('pubs.all')}</option>
+          {tags.map((tag) => <option value={tag}>{t(`tag.${tag}`)}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>{t('pubs.type')}</span>
+        <select name="type">
+          <option value="">{t('pubs.all')}</option>
+          {types.map((ty) => <option value={ty}>{t(`pubs.type.${ty}`)}</option>)}
+        </select>
+      </label>
+      <label class="search">
+        <span>{t('pubs.search')}</span>
+        <input type="search" name="q" placeholder={t('pubs.searchPlaceholder')} />
+      </label>
+      <p class="meta" aria-live="polite"><span data-shown>{publications.length}</span> {t('pubs.shown')}</p>
+    </form>
+
+    <p class="download">
+      <a href={href('/publications.bib')} download="Brunetti_publications.bib">{t('pubs.downloadAll')}</a>
+    </p>
+
+    <p class="none" data-none hidden>{t('pubs.none')}</p>
+
+    {
+      groups.map((g) => (
+        <section class="year-group" data-year-group>
+          <h2 class="year">{g.year}</h2>
+          <ul class="entries">
+            {g.items.map((p) => (
+              <li
+                data-pub
+                data-type={p.type}
+                data-tags={p.tags.join(' ')}
+                data-text={`${p.title} ${p.authors.map((a) => a.name).join(' ')} ${p.venue}`.toLowerCase()}
+              >
+                <PublicationItem pub={p} bibtex />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<script>
+  // Client-side filters. Without JavaScript the full list is shown and the form stays hidden.
+  const form = document.querySelector<HTMLFormElement>('[data-filters]');
+  if (form) {
+    form.hidden = false;
+    const items = [...document.querySelectorAll<HTMLElement>('[data-pub]')];
+    const groups = [...document.querySelectorAll<HTMLElement>('[data-year-group]')];
+    const shown = form.querySelector('[data-shown]')!;
+    const none = document.querySelector<HTMLElement>('[data-none]')!;
+    const apply = () => {
+      const data = new FormData(form);
+      const tag = String(data.get('tag') ?? '');
+      const type = String(data.get('type') ?? '');
+      const words = String(data.get('q') ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+      let count = 0;
+      for (const el of items) {
+        const ok =
+          (!tag || el.dataset.tags!.split(' ').includes(tag)) &&
+          (!type || el.dataset.type === type) &&
+          words.every((w) => el.dataset.text!.includes(w));
+        el.hidden = !ok;
+        if (ok) count++;
+      }
+      for (const g of groups) g.hidden = !g.querySelector('[data-pub]:not([hidden])');
+      shown.textContent = String(count);
+      none.hidden = count > 0;
+    };
+    form.addEventListener('input', apply);
+    form.addEventListener('submit', (e) => e.preventDefault());
+  }
+</script>
+
+<style>
+  .chart {
+    margin: var(--space-m) 0 var(--space-l);
+    max-width: 44rem;
+  }
+
+  .chart svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .chart rect {
+    fill: var(--color-accent);
+  }
+
+  .chart text {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    fill: var(--color-text-muted);
+    text-anchor: middle;
+  }
+
+  .chart .count {
+    fill: var(--color-text);
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-s) var(--space-m);
+    padding-block: var(--space-s);
+    border-top: var(--rule);
+    border-bottom: var(--rule);
+    font-family: var(--font-ui);
+  }
+
+  .filters[hidden] {
+    display: none;
+  }
+
+  .filters label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    font-size: var(--step--1);
+  }
+
+  .filters .search {
+    flex: 1 1 14rem;
+  }
+
+  select,
+  input {
+    font: inherit;
+    font-size: var(--step-0);
+    padding: var(--space-3xs) var(--space-2xs);
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 1px solid var(--color-text-muted);
+    border-radius: var(--radius);
+  }
+
+  .filters .meta {
+    margin: 0;
+  }
+
+  .download {
+    font-family: var(--font-ui);
+    margin-top: var(--space-s);
+  }
+
+  .year {
+    font-size: var(--step-2);
+    margin: var(--space-l) 0 var(--space-2xs);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+</style>

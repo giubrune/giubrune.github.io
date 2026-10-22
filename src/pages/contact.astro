@@ -1,0 +1,72 @@
+---
+// Contact: email, phone and profiles from src/data/profile.yaml; address from
+// src/content/pages/en/contact.md.
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { profile, profileLinks } from '../lib/profile';
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations('en');
+const page = await getEntry('pages', 'en/contact');
+const { Content } = page ? await render(page) : { Content: null };
+---
+
+<BaseLayout title={page?.data.title ?? t('nav.contact')} description={page?.data.description}>
+  <div class="wrapper page">
+    <h1>{page?.data.title ?? t('nav.contact')}</h1>
+    <dl class="contact">
+      <dt>{t('contact.email')}</dt>
+      <dd><a href={`mailto:${profile.email}`}>{profile.email}</a></dd>
+      {
+        profile.phone && (
+          <>
+            <dt>{t('contact.phone')}</dt>
+            <dd>
+              <a href={`tel:${profile.phone.replace(/\s/g, '')}`}>{profile.phone}</a>
+            </dd>
+          </>
+        )
+      }
+    </dl>
+    {Content && <div class="prose"><Content /></div>}
+    {
+      profileLinks.length > 0 && (
+        <section aria-labelledby="profiles">
+          <h2 id="profiles" class="section-title">
+            {t('contact.profiles')}
+          </h2>
+          <ul class="link-row">
+            {profileLinks.map((p) => (
+              <li>
+                <a href={p.url} rel="me">
+                  {p.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-2xs) var(--space-m);
+    font-size: var(--step-1);
+    margin: 0 0 var(--space-l);
+  }
+
+  .contact dt {
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    align-self: center;
+  }
+
+  .contact dd {
+    margin: 0;
+  }
+</style>

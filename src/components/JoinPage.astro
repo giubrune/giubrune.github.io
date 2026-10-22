@@ -1,0 +1,61 @@
+---
+// Join us page body, shared by /join/ and /it/join/.
+// Text: src/content/pages/<lang>/join.md. Open positions: src/content/positions/
+// (hidden automatically after their deadline).
+import { getCollection, getEntry, render } from 'astro:content';
+import { partialDate, isPast } from '../lib/format';
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const page = (await getEntry('pages', `${lang}/join`)) ?? (await getEntry('pages', 'en/join'));
+const { Content } = page ? await render(page) : { Content: null };
+const positions = (await getCollection('openPositions'))
+  .filter((p) => !p.data.deadline || !isPast(p.data.deadline))
+  .sort((a, b) => (a.data.deadline ?? '9999').localeCompare(b.data.deadline ?? '9999'));
+const text = (v: { en: string; it?: string }) => (lang === 'it' && v.it) || v.en;
+---
+
+<div class="wrapper page">
+  <h1>{page?.data.title ?? t('nav.join')}</h1>
+
+  <section aria-labelledby="open-positions">
+    <h2 id="open-positions" class="section-title">{t('join.positions')}</h2>
+    {
+      positions.length === 0 ? (
+        <p>{t('join.none')}</p>
+      ) : (
+        <ul class="entries">
+          {positions.map((p) => (
+            <li>
+              <h3>{p.data.url ? <a href={p.data.url}>{text(p.data.title)}</a> : text(p.data.title)}</h3>
+              <p class="meta">
+                {p.data.deadline ? `${t('common.deadline')} ${partialDate(p.data.deadline, lang)}` : t('common.openUntilFilled')}
+                {p.data.funding && (
+                  <>
+                    <br />
+                    {p.data.funding}
+                  </>
+                )}
+              </p>
+              <p>{text(p.data.description)}</p>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+
+  {Content && <div class="prose join-text"><Content /></div>}
+</div>
+
+<style>
+  .join-text {
+    margin-top: var(--space-xl);
+  }
+</style>

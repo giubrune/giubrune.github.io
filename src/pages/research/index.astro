@@ -1,0 +1,44 @@
+---
+// Research overview: one entry per theme in src/content/research/.
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { href } from '../../lib/url';
+import { useTranslations } from '../../i18n/utils';
+
+const t = useTranslations('en');
+const themes = (await getCollection('research')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title={t('nav.research')} description={themes.map((th) => th.data.title).join(', ')}>
+  <div class="wrapper page">
+    <h1>{t('nav.research')}</h1>
+    <ul class="entries">
+      {
+        themes.map((th) => (
+          <li>
+            <h2 class="theme-title">
+              <a href={href(`/research/${th.id}/`)}>{th.data.title}</a>
+            </h2>
+            <p>{th.data.summary}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .theme-title {
+    font-size: var(--step-2);
+    margin: 0 0 var(--space-2xs);
+  }
+
+  .theme-title a {
+    color: var(--color-text);
+    text-decoration-color: var(--color-silt);
+  }
+
+  .theme-title a:hover {
+    color: var(--color-accent);
+  }
+</style>

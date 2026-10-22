@@ -16,8 +16,6 @@ export default defineConfig({
   integrations: [
     sitemap({
       i18n: { defaultLocale: 'en', locales: { en: 'en', it: 'it' } },
-      // Temporary review pages stay out of the sitemap.
-      filter: (page) => !page.includes('/design-preview/'),
     }),
   ],
 });

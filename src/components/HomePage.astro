@@ -1,0 +1,200 @@
+---
+// Home page body, shared by / and /it/. All text comes from src/content/pages/<lang>/home.md,
+// src/data/profile.yaml, the news and positions collections and publications.bib.
+import { getCollection, getEntry } from 'astro:content';
+import SoilHero from './SoilHero.astro';
+import PublicationItem from './PublicationItem.astro';
+import { profile, profileLinks } from '../lib/profile';
+import { publications } from '../lib/publications';
+import { partialDate, isPast } from '../lib/format';
+import type { Lang } from '../i18n/ui';
+import { useTranslations, localizedHref } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const home = (await getEntry('pages', `${lang}/home`)) ?? (await getEntry('pages', 'en/home'));
+const entryPoints = home?.data.entryPoints ?? [];
+const sectionPath = { research: '/research/', software: '/software/', teaching: '/teaching/', company: '/company/' };
+
+const news = (await getCollection('news')).sort((a, b) => b.data.date.localeCompare(a.data.date)).slice(0, 3);
+const selected = publications.filter((p) => p.selected).slice(0, 3);
+const positions = (await getCollection('openPositions')).filter((p) => !p.data.deadline || !isPast(p.data.deadline));
+---
+
+<section class="hero" aria-labelledby="hero-name">
+  <div class="wrapper hero-text">
+    <h1 id="hero-name">{profile.name}</h1>
+    <p class="hero-role">
+      {profile.role[lang]}
+      <br />
+      {profile.department[lang]}
+      <br />
+      {profile.institution[lang]}
+    </p>
+    {home?.data.statement && <p class="hero-statement">{home.data.statement}</p>}
+  </div>
+  <SoilHero />
+</section>
+
+<div class="wrapper">
+  <section aria-label={t('home.explore')}>
+    <ul class="entry-points">
+      {
+        entryPoints.map((e) => (
+          <li>
+            <a href={localizedHref(sectionPath[e.section], lang)}>{t(`nav.${e.section}`)}</a>
+            <p>{e.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {
+    positions.length > 0 && (
+      <section aria-labelledby="home-positions" class="positions">
+        <h2 id="home-positions" class="section-title">
+          {t('home.positions')}
+        </h2>
+        <ul class="entries">
+          {positions.map((p) => (
+            <li>
+              <a href={localizedHref('/join/', lang)}>{(lang === 'it' && p.data.title.it) || p.data.title.en}</a>
+              <p class="meta">
+                {p.data.deadline
+                  ? `${t('common.deadline')} ${partialDate(p.data.deadline, lang)}`
+                  : t('common.openUntilFilled')}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <div class="two-col">
+    <section aria-labelledby="home-news">
+      <h2 id="home-news" class="section-title">{t('home.news')}</h2>
+      <ul class="entries compact">
+        {
+          news.map((n) => (
+            <li>
+              <p class="meta">{partialDate(n.data.date, lang)}</p>
+              <p class="news-title">{n.data.title}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="more"><a href={localizedHref('/news/', lang)}>{t('home.allNews')}</a></p>
+    </section>
+
+    <section aria-labelledby="home-pubs">
+      <h2 id="home-pubs" class="section-title">{t('home.publications')}</h2>
+      <ul class="entries compact">
+        {
+          selected.map((p) => (
+            <li>
+              <PublicationItem pub={p} />
+            </li>
+          ))
+        }
+      </ul>
+      <p class="more"><a href={localizedHref('/publications/', lang)}>{t('home.allPublications')}</a></p>
+    </section>
+  </div>
+
+  {
+    profileLinks.length > 0 && (
+      <section aria-labelledby="home-profiles">
+        <h2 id="home-profiles" class="section-title">
+          {t('home.profiles')}
+        </h2>
+        <ul class="link-row">
+          {profileLinks.map((p) => (
+            <li>
+              <a href={p.url} rel="me">
+                {p.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</div>
+
+<style>
+  .hero-text {
+    padding-block: var(--space-xl) var(--space-m);
+  }
+
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--space-s);
+  }
+
+  .hero-role {
+    font-family: var(--font-ui);
+    color: var(--color-text-muted);
+    line-height: 1.45;
+    margin-bottom: var(--space-m);
+  }
+
+  .hero-statement {
+    font-size: var(--step-2);
+    line-height: 1.35;
+    max-width: 34ch;
+    margin: 0;
+  }
+
+  .entry-points {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0 var(--space-l);
+    list-style: none;
+    padding: 0;
+    margin: var(--space-xl) 0 0;
+    max-width: none;
+  }
+
+  .entry-points li {
+    padding-block: var(--space-s);
+    border-top: 2px solid var(--color-text);
+  }
+
+  .entry-points a {
+    font-family: var(--font-ui);
+    font-size: var(--step-1);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .entry-points a:hover {
+    text-decoration: underline;
+  }
+
+  .entry-points p {
+    margin: var(--space-2xs) 0 0;
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+  }
+
+  .compact > li {
+    padding-block: var(--space-s);
+  }
+
+  .news-title {
+    margin: var(--space-3xs) 0 0;
+  }
+
+  .more {
+    font-family: var(--font-ui);
+    margin-top: var(--space-s);
+  }
+</style>

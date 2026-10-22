@@ -1,0 +1,12 @@
+---
+// Join page (English). See src/components/JoinPage.astro.
+import { getEntry } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import JoinPage from '../components/JoinPage.astro';
+
+const page = await getEntry('pages', 'en/join');
+---
+
+<BaseLayout title={page?.data.title} description={page?.data.description}>
+  <JoinPage lang="en" />
+</BaseLayout>

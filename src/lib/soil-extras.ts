@@ -1,4 +1,4 @@
-// Extra soil features for the richer drawings (variants A and C on /design-preview/):
+// Extra soil features for the hero drawing:
 // stones, macropores (earthworm and root channels) and pores cut by the section plane.
 // Deterministic, computed at build time.
 import { WIDTH, WATER_TABLE, rng, round, surface, boundary1, boundary2 } from './soil-profile';

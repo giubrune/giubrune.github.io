@@ -1,0 +1,205 @@
+---
+// Home-page hero drawing: a soil profile with plants. Topsoil, subsoil and sand with
+// stones, roots and macropores; water that has infiltrated from the surface and run down
+// the macropores; a dissolved substance (small amber particles) carried by the water and
+// taken up by the plants; the water table at the bottom. Static, built at build time.
+// Decorative: hidden from screen readers (the hero text says what the site is about).
+import { WIDTH, HEIGHT, WATER_TABLE, profile } from '../lib/soil-profile';
+import { stones, macroporePaths, cutPores } from '../lib/soil-extras';
+import { waterImage } from '../lib/soil-field';
+import { plants, PLANT_TOP } from '../lib/soil-plants';
+import { solutes } from '../lib/soil-solutes';
+
+const id = 'hero-soil';
+const { tiles } = profile;
+const top = PLANT_TOP - 10;
+const viewH = HEIGHT - top;
+const wtX = WIDTH / 2 + 230;
+const water = waterImage();
+---
+
+<svg
+  class="soil-hero"
+  viewBox={`0 ${top} ${WIDTH} ${viewH}`}
+  preserveAspectRatio="xMidYMin slice"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <pattern id={`${id}-fine`} width={tiles.fine.w} height={tiles.fine.h} patternUnits="userSpaceOnUse">
+      {tiles.fine.grains.map((g, i) => <circle class={i % 3 ? 'g-top-dark' : 'g-top-light'} cx={g.cx} cy={g.cy} r={g.rx} />)}
+    </pattern>
+    <pattern id={`${id}-dense`} width={tiles.dense.w} height={tiles.dense.h} patternUnits="userSpaceOnUse">
+      {tiles.dense.grains.map((g, i) => <circle class={i % 4 ? 'g-sub' : 'g-sub-light'} cx={g.cx} cy={g.cy} r={g.rx} />)}
+    </pattern>
+    <pattern id={`${id}-coarse`} width={tiles.coarse.w} height={tiles.coarse.h} patternUnits="userSpaceOnUse">
+      {
+        tiles.coarse.grains.map((g) => (
+          <ellipse class="pebble" cx={g.cx} cy={g.cy} rx={g.rx} ry={g.ry} transform={`rotate(${g.rot} ${g.cx} ${g.cy})`} />
+        ))
+      }
+    </pattern>
+    <clipPath id={`${id}-ground`}><path d={profile.ground} /></clipPath>
+  </defs>
+
+  <!-- Soil horizons with their textures -->
+  <path class="h-top" d={profile.topsoil} />
+  <path d={profile.topsoil} fill={`url(#${id}-fine)`} />
+  <path class="h-sub" d={profile.subsoil} />
+  <path d={profile.subsoil} fill={`url(#${id}-dense)`} />
+  <path class="h-sand" d={profile.sand} />
+  <path d={profile.sand} fill={`url(#${id}-coarse)`} />
+
+  <!-- Stones, pores, macropores, roots -->
+  {stones.map((s) => <path class="stone" d={s.d} />)}
+  {cutPores.map((p) => <ellipse class="cut-pore" cx={p.cx} cy={p.cy} rx={p.rx} ry={p.ry} />)}
+  {macroporePaths.map((m) => <path class="macropore" d={m.d} stroke-width={m.width} />)}
+  {profile.roots.map((r) => <path class:list={['root', { branch: !r.main }]} d={r.d} />)}
+  {plants.map((p) => p.roots.map((r) => <path class:list={['plant-root', { main: r.main }]} d={r.d} />))}
+  <path class="boundary" d={profile.boundary1Line} />
+  <path class="boundary" d={profile.boundary2Line} />
+
+  <!-- Water: infiltrated, along macropores, capillary fringe and groundwater -->
+  <image clip-path={`url(#${id}-ground)`} href={water} x="0" y="0" width={WIDTH} height={HEIGHT} preserveAspectRatio="none" />
+  {
+    macroporePaths
+      .filter((m) => m.deep)
+      .map((m) => <path class="macropore-water" d={m.d} stroke-width={Math.max(1, m.width - 1)} />)
+  }
+
+  <path class="surface" d={profile.surfaceLine} />
+  <line class="water-table" x1="0" y1={WATER_TABLE} x2={WIDTH} y2={WATER_TABLE} />
+  <path class="wt-symbol" d={`M${wtX - 8} ${WATER_TABLE - 14} L${wtX + 8} ${WATER_TABLE - 14} L${wtX} ${WATER_TABLE - 3} Z`} />
+
+  <!-- Plants -->
+  {
+    plants.map((p) => (
+      <g>
+        <path class="stem" d={p.stem} />
+        {p.leaves.map((l) => (
+          <path class="leaf" d={l.d} />
+        ))}
+        {p.fruits.map((f) => (
+          <>
+            <path class="stalk" d={f.stalk} />
+            <circle class="fruit" cx={f.cx} cy={f.cy} r={f.r} />
+          </>
+        ))}
+      </g>
+    ))
+  }
+
+  <!-- Solute -->
+  {solutes.map((s) => <circle class="solute" cx={s.cx} cy={s.cy} r={s.inPlant ? 2 : 2.2} />)}
+</svg>
+
+<style>
+  .soil-hero {
+    /* Soil colours are the same in light and dark mode. */
+    --top: #5e4c39;
+    --top-grain-dark: #43362a;
+    --top-grain-light: #847059;
+    --sub: #9c7a55;
+    --sub-grain: #7b5d3e;
+    --sub-grain-light: #b9997a;
+    --sand: #d6c7a4;
+    --pebble: #e3d8bd;
+    --pebble-edge: #aa9777;
+    --stone: #97928a;
+    --stone-edge: #625e57;
+    --pore: #2a2017;
+    --root: #ddcfb1;
+    --stem: #3d5636;
+    --leaf: var(--color-root, #4f6f45);
+    --fruit: #b0533f;
+    --solute: #d39233;
+    --solute-edge: #6e4512;
+    --water-line: #1f5170;
+
+    display: block;
+    width: 100%;
+    /* Drawing is 1600 × 555 units: never shorter than that ratio, so nothing is cut off. */
+    height: max(clamp(260px, 36vw, 520px), 34.7vw);
+  }
+
+  .h-top { fill: var(--top); }
+  .h-sub { fill: var(--sub); }
+  .h-sand { fill: var(--sand); }
+
+  .g-top-dark { fill: var(--top-grain-dark); }
+  .g-top-light { fill: var(--top-grain-light); }
+  .g-sub { fill: var(--sub-grain); opacity: 0.7; }
+  .g-sub-light { fill: var(--sub-grain-light); }
+  .pebble {
+    fill: var(--pebble);
+    stroke: var(--pebble-edge);
+    stroke-width: 1;
+  }
+
+  .stone {
+    fill: var(--stone);
+    stroke: var(--stone-edge);
+    stroke-width: 1;
+    stroke-linejoin: round;
+  }
+
+  .cut-pore { fill: var(--pore); opacity: 0.7; }
+
+  .macropore,
+  .macropore-water,
+  .root,
+  .plant-root,
+  .stem,
+  .stalk {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .macropore { stroke: var(--pore); opacity: 0.85; }
+  .macropore-water { stroke: var(--water-line); opacity: 0.85; }
+
+  .root { stroke: var(--root); stroke-width: 1.3; opacity: 0.7; }
+  .root.branch { stroke-width: 0.8; }
+  .plant-root { stroke: var(--root); stroke-width: 1.2; opacity: 0.9; }
+  .plant-root.main { stroke-width: 2; }
+
+  .boundary {
+    fill: none;
+    stroke: var(--top-grain-dark);
+    stroke-width: 1;
+    opacity: 0.3;
+  }
+
+  .surface {
+    fill: none;
+    stroke: var(--top-grain-dark);
+    stroke-width: 2.5;
+  }
+
+  .water-table {
+    stroke: var(--water-line);
+    stroke-width: 2;
+  }
+
+  .wt-symbol {
+    fill: none;
+    stroke: var(--water-line);
+    stroke-width: 1.5;
+  }
+
+  .stem { stroke: var(--stem); stroke-width: 2.4; }
+  .leaf {
+    fill: var(--leaf);
+    stroke: var(--stem);
+    stroke-width: 0.6;
+  }
+  .stalk { stroke: var(--stem); stroke-width: 1.1; }
+  .fruit { fill: var(--fruit); }
+
+  .solute {
+    fill: var(--solute);
+    stroke: var(--solute-edge);
+    stroke-width: 0.5;
+  }
+</style>

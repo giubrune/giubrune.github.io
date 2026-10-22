@@ -1,0 +1,106 @@
+---
+// One publication: authors (owner highlighted), title, venue, year, DOI and optional links.
+import type { Publication } from '../lib/publications';
+import { useTranslations } from '../i18n/utils';
+
+interface Props {
+  pub: Publication;
+  /** Show the “BibTeX” download link. */
+  bibtex?: boolean;
+}
+
+const { pub, bibtex = false } = Astro.props;
+const t = useTranslations('en');
+const details = [pub.volume, pub.pages].filter(Boolean).join(', ');
+const bibHref = `data:application/x-bibtex;charset=utf-8,${encodeURIComponent(pub.bibtex + '\n')}`;
+---
+
+<p class="authors">
+  {
+    pub.authors.map((a, i) => (
+      <>
+        {a.isOwner ? <strong>{a.name}</strong> : a.name}
+        {i < pub.authors.length - 1 ? ', ' : ''}
+      </>
+    ))
+  }
+</p>
+<p class="title">{pub.title}</p>
+<p class="venue">
+  <em>{pub.venue}</em>{details && `, ${details}`} ({pub.year}){pub.note && `. ${pub.note}`}
+</p>
+{pub.award && <p class="award">{pub.award}</p>}
+<ul class="pub-links">
+  {
+    pub.doi && (
+      <li>
+        <a href={`https://doi.org/${pub.doi}`}>doi:{pub.doi}</a>
+      </li>
+    )
+  }
+  {
+    pub.links.map((l) => (
+      <li>
+        <a href={l.url}>{t(`pubs.${l.kind}`)}</a>
+      </li>
+    ))
+  }
+  {
+    bibtex && (
+      <li>
+        <a href={bibHref} download={`${pub.key}.bib`}>
+          {t('pubs.bibtex')}
+        </a>
+      </li>
+    )
+  }
+</ul>
+
+<style>
+  p {
+    margin: 0;
+    max-width: 75ch;
+  }
+
+  .authors {
+    font-size: var(--step--1);
+    color: var(--color-text-muted);
+    font-family: var(--font-ui);
+  }
+
+  .authors strong {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .title {
+    font-weight: 600;
+    margin-block: var(--space-3xs);
+  }
+
+  .venue {
+    font-size: var(--step--1);
+  }
+
+  .award {
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+    color: var(--color-loam);
+    margin-top: var(--space-3xs);
+  }
+
+  .pub-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-m);
+    list-style: none;
+    padding: 0;
+    margin: var(--space-3xs) 0 0;
+    font-family: var(--font-ui);
+    font-size: var(--step--1);
+  }
+
+  .pub-links a {
+    overflow-wrap: anywhere;
+  }
+</style>

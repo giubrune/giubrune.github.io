@@ -126,3 +126,97 @@ hr {
     scroll-behavior: auto !important;
   }
 }
+
+/* ------------------------------------------------------------------------
+   Page building blocks
+   ------------------------------------------------------------------------ */
+
+/* Standard inner page: title, introduction, content. */
+.page {
+  padding-block: var(--space-xl) var(--space-l);
+}
+
+.page > h1:first-child {
+  margin-top: 0;
+}
+
+.lede {
+  font-size: var(--step-1);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+/* Small grotesk metadata line: dates, roles, places. */
+.meta {
+  font-family: var(--font-ui);
+  font-size: var(--step--1);
+  color: var(--color-text-muted);
+}
+
+/* A list of entries separated by thin rules (no cards). */
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+.entries > li {
+  padding-block: var(--space-m);
+  border-top: var(--rule);
+}
+
+.entries > li:last-child {
+  border-bottom: var(--rule);
+}
+
+.entries h3 {
+  font-size: var(--step-1);
+  margin: 0 0 var(--space-2xs);
+}
+
+.entries p {
+  margin-bottom: var(--space-2xs);
+}
+
+/* Section heading inside a page. */
+.section-title {
+  font-size: var(--step-2);
+  margin: var(--space-xl) 0 var(--space-s);
+}
+
+/* Markdown text from content files. */
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose h2 {
+  font-size: var(--step-2);
+}
+
+.prose li {
+  margin-bottom: var(--space-3xs);
+}
+
+/* Inline list of links separated by space, not symbols. */
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-ui);
+}
+
+/* Two columns on wide screens. */
+.two-col {
+  display: grid;
+  gap: var(--space-l) var(--space-xl);
+}
+
+@media (min-width: 56rem) {
+  .two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}

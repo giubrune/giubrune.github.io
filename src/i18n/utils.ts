@@ -9,7 +9,7 @@ export function getLang(url: URL): Lang {
 
 /** Returns a function that looks up interface text in the given language. */
 export function useTranslations(lang: Lang) {
-  return (key: UiKey): string => ui[lang][key] ?? ui[defaultLang][key];
+  return (key: UiKey): string => ui[lang][key] ?? ui.en[key];
 }
 
 /** Site path without the language prefix, e.g. "/it/join/" → "/join/". */

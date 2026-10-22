@@ -1,0 +1,48 @@
+---
+// News and talks from src/content/news/, newest first.
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { partialDate } from '../lib/format';
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations('en');
+const items = await Promise.all(
+  (await getCollection('news'))
+    .sort((a, b) => b.data.date.localeCompare(a.data.date) || a.data.title.localeCompare(b.data.title))
+    .map(async (n) => ({ ...n, Content: (await render(n)).Content })),
+);
+---
+
+<BaseLayout title={t('nav.news')} description={t('news.description')}>
+  <div class="wrapper page">
+    <h1>{t('nav.news')}</h1>
+    <ul class="entries">
+      {
+        items.map((n) => (
+          <li id={n.id}>
+            <p class="meta">
+              {partialDate(n.data.date)}
+              <span class="type">{t(`news.type.${n.data.type}`)}</span>
+            </p>
+            <h2 class="news-title">{n.data.link ? <a href={n.data.link}>{n.data.title}</a> : n.data.title}</h2>
+            <div class="prose">
+              <n.Content />
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .type {
+    margin-left: var(--space-s);
+    color: var(--color-loam);
+  }
+
+  .news-title {
+    font-size: var(--step-1);
+    margin: var(--space-3xs) 0 var(--space-2xs);
+  }
+</style>
