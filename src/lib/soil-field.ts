@@ -40,11 +40,21 @@ export function saturationB(x: number, z: number) {
 
 /** Variant C: shallow matrix front, with water running down the macropores. */
 const shallowFront = wavy(0, 10, 97);
-export function saturationC(x: number, z: number) {
-  if (z >= WATER_TABLE) return 1;
-  const s0 = initialSaturation(x, z);
-  const front = surface(x) + 52 + shallowFront(x);
-  let s = s0 + (Math.max(s0, wetSaturation(x, z, front)) - s0) * behind(z, front, 4);
+export const matrixFrontC = (x: number) => surface(x) + 52 + shallowFront(x);
+
+/** Part of the pore space filled by water infiltrated through the soil matrix (0–1). */
+export function matrixWetC(x: number, z: number) {
+  if (z >= WATER_TABLE) return 0;
+  const s0 = layers[layerAt(x, z)].initial;
+  const front = matrixFrontC(x);
+  return Math.max(0, (wetSaturation(x, z, front) - s0) / (1 - s0)) * behind(z, front, 4);
+}
+
+/** Part of the pore space filled by water that ran down the macropores (0–1). */
+export function macroWetC(x: number, z: number) {
+  if (z >= WATER_TABLE) return 0;
+  const front = matrixFrontC(x);
+  let w = 0;
   for (const m of macropores) {
     if (m.tip[1] < front + 10) continue; // channels inside the wet zone add nothing
     if (Math.abs(x - m.tip[0]) > 60) continue;
@@ -53,9 +63,16 @@ export function saturationC(x: number, z: number) {
     const along = 0.93 * Math.exp(-((d / halo) ** 2));
     const dt = Math.hypot(x - m.tip[0], z - m.tip[1]);
     const bulb = 0.9 * Math.exp(-((dt / 16) ** 2));
-    s = Math.max(s, s0 + (1 - s0) * Math.max(along, bulb) * (z <= m.tip[1] + 2 ? 1 : 0.85));
+    w = Math.max(w, Math.max(along, bulb) * (z <= m.tip[1] + 2 ? 1 : 0.85));
   }
-  return Math.min(1, s);
+  return w;
+}
+
+/** Groundwater before any infiltration: capillary fringe above the water table (0–1). */
+export function groundwaterWetC(x: number, z: number) {
+  if (z >= WATER_TABLE) return 1;
+  const s0 = layers[layerAt(x, z)].initial;
+  return (initialSaturation(x, z) - s0) / (1 - s0);
 }
 
 export function theta(x: number, z: number, saturation: number) {
@@ -185,14 +202,18 @@ export function thetaImage(stops: Stop[]) {
   });
 }
 
-/** Variant C: translucent water overlay; dry soil stays visible, wetter soil turns deeper blue. Clip to the ground. */
-export function waterOverlayImage() {
+/**
+ * Variant C: translucent water overlays; dry soil stays visible, wetter soil turns deeper blue.
+ * Three layers so they can be revealed separately: groundwater (always there), matrix, macropores.
+ * Clip to the ground when drawing.
+ */
+export function waterOverlayImage(part: 'groundwater' | 'matrix' | 'macropores') {
+  const wetness = { groundwater: groundwaterWetC, matrix: matrixWetC, macropores: macroWetC }[part];
   return pngDataUri(COLS, ROWS, (i, j) => {
     const [x, z] = at(i, j);
-    const s = saturationC(x, z);
-    const s0 = z >= WATER_TABLE ? 0 : layers[layerAt(x, z)].initial;
-    const wet = Math.max(0, (s - s0) / (1 - s0));
+    const wet = Math.min(1, wetness(x, z));
+    if (wet <= 0.005) return [0, 0, 0, 0];
     const alpha = z >= WATER_TABLE ? 0.75 : 0.8 * wet ** 0.9;
-    return [...ramp(vividRamp, s), Math.round(alpha * 255)];
+    return [...ramp(vividRamp, 0.3 + 0.7 * wet), Math.round(alpha * 255)];
   });
 }

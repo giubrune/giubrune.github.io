@@ -44,7 +44,7 @@ const variants = [
   {
     key: 'c',
     label: 'C: realistic soil with a water-content gradient',
-    note: 'The soil of A, with the water as a vivid gradient: deeper blue where wetter. The matrix front stays shallow, while water runs down the macropores and wets the soil around them (preferential flow).',
+    note: 'The soil of A with plants on the surface. The water is a vivid gradient (deeper blue where wetter): the matrix front stays shallow, while water runs down the macropores and wets the soil around them (preferential flow). Amber particles are a dissolved substance applied at the surface: they move more slowly than the water in the soil matrix, faster along the macropores, and are taken up by the roots into stems, leaves and fruits. Press “Play the animation” to see it move (about 5 seconds).',
   },
 ];
 
@@ -103,6 +103,13 @@ const themes = [
               {v.key === "a" && <SoilRealistic id={`real-a-${t.cls}`} mode="a" />}
               {v.key === "b" && <SoilSimulation />}
               {v.key === "c" && <SoilRealistic id={`real-c-${t.cls}`} mode="c" />}
+              {v.key === "c" && (
+                <div class="wrapper">
+                  <button class="play" type="button" data-soil-play={`real-c-${t.cls}`}>
+                    Play the animation
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -235,6 +242,22 @@ const themes = [
     gap: var(--space-2xs) var(--space-m);
     font-family: var(--font-ui);
     margin-bottom: var(--space-l);
+  }
+
+  .play {
+    font: inherit;
+    font-family: var(--font-ui);
+    margin-block: var(--space-s);
+    padding: var(--space-2xs) var(--space-s);
+    color: var(--color-text);
+    background: transparent;
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  .play:hover {
+    background: var(--color-surface);
   }
 
   .variant {
