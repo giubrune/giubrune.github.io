@@ -1,0 +1,29 @@
+---
+import { getCollection } from "astro:content"
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import { NEWS } from "@consts"
+import { formatDate } from "@lib/utils"
+
+const posts = (await getCollection("news")).filter((n) => !n.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+---
+
+<PageLayout title={NEWS.TITLE} description={NEWS.DESCRIPTION}>
+  <TopLayout title={NEWS.TITLE} lede={NEWS.DESCRIPTION} />
+  <BottomLayout>
+    <ul class="divide-y divide-stone-200 dark:divide-stone-800">
+      {posts.map((n) => (
+        <li class="py-5 grid sm:grid-cols-[9rem_1fr] gap-1 sm:gap-4">
+          <time class="text-sm text-stone-500" datetime={n.data.date.toISOString()}>{formatDate(n.data.date, "month")}</time>
+          <div>
+            <a href={`/news/${n.id}`} class="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100 hover:text-accent-700 dark:hover:text-accent-300">{n.data.title}</a>
+            <p class="text-stone-600 dark:text-stone-400">{n.data.summary}</p>
+            <div class="mt-2 flex flex-wrap gap-1.5">{n.data.tags.map((t) => <span class="chip">{t}</span>)}</div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </BottomLayout>
+</PageLayout>

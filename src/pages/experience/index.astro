@@ -1,0 +1,46 @@
+---
+import { getCollection, render } from "astro:content"
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import { EXPERIENCE } from "@consts"
+import { education } from "@data/cv"
+
+const positions = (await getCollection("positions")).sort((a, b) => a.id.localeCompare(b.id))
+const rendered = await Promise.all(positions.map(async (p) => ({ p, Content: (await render(p)).Content })))
+const span = (s: number, e: number | "present") => (e === "present" ? `${s}–present` : s === e ? `${s}` : `${s}–${e}`)
+---
+
+<PageLayout title={EXPERIENCE.TITLE} description={EXPERIENCE.DESCRIPTION}>
+  <TopLayout title={EXPERIENCE.TITLE} lede="Academic appointments in Italy, Austria, the Czech Republic and the United States." />
+  <BottomLayout>
+    <section>
+      <h2 class="section-title">Positions</h2>
+      <ol class="relative border-l border-stone-300 dark:border-stone-700 ml-2">
+        {rendered.map(({ p, Content }, i) => (
+          <li class="ml-6 pb-7 last:pb-0">
+            <span class={`absolute -left-[7px] mt-1.5 size-3.5 rounded-full border-2 border-stone-50 dark:border-stone-950 ${i === 0 ? "bg-accent-600 dark:bg-accent-400" : "bg-stone-400 dark:bg-stone-600"}`}></span>
+            <div class="text-sm text-stone-500 tabular-nums">{span(p.data.dateStart, p.data.dateEnd)}</div>
+            <h3 class="font-serif text-lg font-semibold">{p.data.role}</h3>
+            <div class="text-stone-600 dark:text-stone-400">{p.data.institution} · {p.data.location}</div>
+            <div class="mt-1 text-sm text-stone-600 dark:text-stone-400 [&_p]:m-0"><Content /></div>
+          </li>
+        ))}
+      </ol>
+    </section>
+    <section class="mt-12">
+      <h2 class="section-title">Education & habilitations</h2>
+      <ul class="space-y-5">
+        {education.map((e) => (
+          <li class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+            <div class="text-sm text-stone-500 tabular-nums">{e.year}</div>
+            <div>
+              <div class="font-medium text-stone-900 dark:text-stone-100">{e.title}</div>
+              <div class="text-sm text-stone-600 dark:text-stone-400">{e.detail}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </BottomLayout>
+</PageLayout>

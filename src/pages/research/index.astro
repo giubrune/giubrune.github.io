@@ -1,44 +1,61 @@
 ---
-// Research overview: one entry per theme in src/content/research/.
-import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { href } from '../../lib/url';
-import { useTranslations } from '../../i18n/utils';
-
-const t = useTranslations('en');
-const themes = (await getCollection('research')).sort((a, b) => a.data.order - b.data.order);
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import { RESEARCH } from "@consts"
+import { researchFields, projects, awards } from "@data/cv"
+import { publications } from "@lib/publications"
+const count = (t: string) => publications.filter((p) => p.topics.includes(t)).length
 ---
 
-<BaseLayout title={t('nav.research')} description={themes.map((th) => th.data.title).join(', ')}>
-  <div class="wrapper page">
-    <h1>{t('nav.research')}</h1>
-    <ul class="entries">
-      {
-        themes.map((th) => (
-          <li>
-            <h2 class="theme-title">
-              <a href={href(`/research/${th.id}/`)}>{th.data.title}</a>
-            </h2>
-            <p>{th.data.summary}</p>
+<PageLayout title={RESEARCH.TITLE} description={RESEARCH.DESCRIPTION}>
+  <TopLayout title={RESEARCH.TITLE}
+    lede="Soil physics and vadose zone hydrology, numerical modeling of transport processes in unsaturated porous media, and Bayesian inference, model complexity analysis, and uncertainty assessment." />
+  <BottomLayout>
+    <section>
+      <h2 class="section-title">Research lines</h2>
+      <div class="space-y-4">
+        {researchFields.map((f, i) => (
+          <div class="card flex gap-4">
+            <div class="font-serif text-3xl font-semibold text-accent-600 dark:text-accent-400 w-8 shrink-0">{i + 1}</div>
+            <div>
+              <h3 class="font-serif text-lg font-semibold">{f.title}</h3>
+              <p class="mt-1 text-stone-600 dark:text-stone-400 leading-relaxed">{f.text}</p>
+              <a class="mt-2 inline-block text-sm link" href={`/publications?topic=${f.topic}`}>{count(f.topic)} related publications →</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="section-title">Research projects <span class="text-base font-sans font-normal text-stone-500">(selected)</span></h2>
+      <ul class="space-y-5">
+        {projects.map((p) => (
+          <li class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+            <div class="text-sm text-stone-500 tabular-nums">{p.years}</div>
+            <div>
+              <div class="font-medium text-stone-900 dark:text-stone-100">{p.title}</div>
+              <div class="text-sm text-stone-600 dark:text-stone-400"><span class="text-accent-700 dark:text-accent-300">{p.role}</span> · {p.funder}</div>
+            </div>
           </li>
-        ))
-      }
-    </ul>
-  </div>
-</BaseLayout>
+        ))}
+      </ul>
+    </section>
 
-<style>
-  .theme-title {
-    font-size: var(--step-2);
-    margin: 0 0 var(--space-2xs);
-  }
-
-  .theme-title a {
-    color: var(--color-text);
-    text-decoration-color: var(--color-silt);
-  }
-
-  .theme-title a:hover {
-    color: var(--color-accent);
-  }
-</style>
+    <section class="mt-12">
+      <h2 class="section-title">Awards & honors</h2>
+      <ul class="space-y-5">
+        {awards.map((a) => (
+          <li class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+            <div class="text-sm text-stone-500 tabular-nums">{a.year}</div>
+            <div>
+              <div class="font-medium text-stone-900 dark:text-stone-100">{a.title}</div>
+              <div class="text-sm text-stone-600 dark:text-stone-400">{a.detail}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </BottomLayout>
+</PageLayout>

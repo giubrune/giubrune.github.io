@@ -1,5 +1,3 @@
-# Builds the site and publishes it to GitHub Pages on every push to main.
-# One-time setup on GitHub: Settings → Pages → Source: “GitHub Actions”.
 name: Deploy to GitHub Pages
 
 on:
@@ -19,21 +17,17 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Repository must be named <username>.github.io; set a custom domain here if you add one.
+      SITE_URL: https://${{ github.repository_owner }}.github.io
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
           cache: npm
-
-      - uses: actions/configure-pages@v5
-
       - run: npm ci
-
-      - name: Build
-        run: npm run build
-
+      - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

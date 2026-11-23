@@ -1,0 +1,33 @@
+---
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import { TEACHING } from "@consts"
+import { teaching } from "@data/cv"
+---
+
+<PageLayout title={TEACHING.TITLE} description={TEACHING.DESCRIPTION}>
+  <TopLayout title={TEACHING.TITLE}
+    lede="I teach hydrology, hydraulic constructions and hydrological modeling at the University of Calabria. At BOKU University in Vienna, I teach courses on vadose zone simulation, soil physical modeling with Python, and soil erosion modeling." />
+  <BottomLayout>
+    <div class="space-y-10">
+      {teaching.map((g) => (
+        <section>
+          <h2 class="section-title">{g.institution}</h2>
+          <ul class="divide-y divide-stone-200 dark:divide-stone-800">
+            {g.courses.map((c) => (
+              <li class="py-3 grid sm:grid-cols-[9rem_1fr] gap-1 sm:gap-4">
+                <span class="text-sm text-stone-500 tabular-nums">{c.years}</span>
+                <span class="font-medium text-stone-900 dark:text-stone-100">{c.title}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+    <p class="mt-10 text-sm text-stone-500">
+      Students interested in a thesis on vadose zone hydrology, numerical modeling or HYDRUS are welcome to get in touch by
+      <a class="link" href="mailto:giuseppe.brunetti@unical.it">email</a>.
+    </p>
+  </BottomLayout>
+</PageLayout>

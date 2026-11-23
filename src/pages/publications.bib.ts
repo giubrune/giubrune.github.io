@@ -1,6 +1,5 @@
-// /publications.bib — all publications as one BibTeX file (entries marked “hidden” excluded).
-import { bibtexAll } from '../lib/publications';
+import type { APIRoute } from "astro"
+import bib from "../data/publications.bib?raw"
 
-export function GET() {
-  return new Response(bibtexAll, { headers: { 'Content-Type': 'application/x-bibtex; charset=utf-8' } });
-}
+export const GET: APIRoute = () =>
+  new Response(bib, { headers: { "Content-Type": "application/x-bibtex; charset=utf-8" } })

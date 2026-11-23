@@ -1,0 +1,40 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content"
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import PubItem from "@components/PubItem.astro"
+import { pubByKey } from "@lib/publications"
+
+export async function getStaticPaths() {
+  const items = (await getCollection("software")).filter((s) => !s.data.draft)
+  return items.map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
+}
+type Props = { entry: CollectionEntry<"software"> }
+const { entry } = Astro.props
+const { Content } = await render(entry)
+const papers = entry.data.papers.map(pubByKey).filter((p) => p !== undefined)
+---
+
+<PageLayout title={entry.data.title} description={entry.data.summary}>
+  <TopLayout>
+    <a href="/software" class="text-sm link no-underline">← All software</a>
+    <div class="mt-6 eyebrow">{entry.data.kind}</div>
+    <h1 class="page-heading mt-1">{entry.data.title}</h1>
+    <p class="page-lede">{entry.data.summary}</p>
+    <div class="mt-5 flex flex-wrap gap-2">
+      {entry.data.homepage && <a href={entry.data.homepage} target="_blank" rel="noopener" class="btn-primary"><svg class="size-4 stroke-current"><use href="/ui.svg#external"/></svg>Product page</a>}
+      {entry.data.docsUrl && <a href={entry.data.docsUrl} target="_blank" rel="noopener" class="btn-primary"><svg class="size-4 stroke-current"><use href="/ui.svg#external"/></svg>Documentation</a>}
+      {entry.data.repoUrl && <a href={entry.data.repoUrl} target="_blank" rel="noopener" class="btn"><svg class="size-4 stroke-current"><use href="/ui.svg#link"/></svg>Source code</a>}
+    </div>
+  </TopLayout>
+  <BottomLayout>
+    <article class="prose-article"><Content /></article>
+    {papers.length > 0 && (
+      <section class="mt-10">
+        <h2 class="section-title">Related publications</h2>
+        <ul>{papers.map((p) => <PubItem pub={p!} showTopics={false} />)}</ul>
+      </section>
+    )}
+  </BottomLayout>
+</PageLayout>

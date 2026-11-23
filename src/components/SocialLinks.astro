@@ -1,0 +1,28 @@
+---
+import { SOCIALS } from "@consts"
+import { cn } from "@lib/utils"
+type Props = { variant?: "icons" | "list"; class?: string }
+const { variant = "icons", class: klass } = Astro.props
+---
+{variant === "icons" ? (
+  <div class={cn("flex flex-wrap gap-1", klass)}>
+    {SOCIALS.map((s) => (
+      <a href={s.HREF} target={s.HREF.startsWith("http") ? "_blank" : undefined} rel="noopener" aria-label={s.NAME} title={s.NAME}
+        class="size-9 p-2 rounded-md text-stone-500 dark:text-stone-400 hover:text-accent-700 dark:hover:text-accent-300 hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors">
+        <svg class="size-full fill-none stroke-current"><use href={`/social.svg#${s.ICON}`} /></svg>
+      </a>
+    ))}
+  </div>
+) : (
+  <ul class={cn("space-y-2 text-sm", klass)}>
+    {SOCIALS.map((s) => (
+      <li>
+        <a href={s.HREF} target={s.HREF.startsWith("http") ? "_blank" : undefined} rel="noopener" class="flex items-center gap-2.5 group">
+          <svg class="size-4 shrink-0 fill-none stroke-current text-stone-500 group-hover:text-accent-700 dark:group-hover:text-accent-300"><use href={`/social.svg#${s.ICON}`} /></svg>
+          <span class="text-stone-500 dark:text-stone-400 w-28 shrink-0">{s.NAME}</span>
+          <span class="text-stone-800 dark:text-stone-200 group-hover:text-accent-700 dark:group-hover:text-accent-300 truncate">{s.TEXT}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}

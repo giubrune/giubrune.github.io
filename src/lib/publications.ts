@@ -1,127 +1,110 @@
-// Reads src/data/publications.bib at build time.
-// Entries with the keyword “hidden” are left out of the site; “selected” marks entries
-// shown on the home page. Custom fields: url_pdf, url_code, url_data, award, note.
-import raw from '../data/publications.bib?raw';
-import { profile } from './profile';
+// Parses src/data/publications.bib at build time.
+import bibRaw from "../data/publications.bib?raw"
+// @ts-expect-error: package ships without type declarations
+import bibtexParse from "@orcid/bibtex-parse-js"
 
-export interface Publication {
-  key: string;
-  type: 'article' | 'chapter' | 'conference';
-  authors: { name: string; isOwner: boolean }[];
-  title: string;
-  venue: string;
-  year: number;
-  volume?: string;
-  pages?: string;
-  doi?: string;
-  note?: string;
-  award?: string;
-  links: { kind: 'pdf' | 'code' | 'data'; url: string }[];
-  tags: string[];
-  selected: boolean;
-  bibtex: string;
+export const TOPICS: Record<string, string> = {
+  vadose: "Vadose zone hydrology",
+  inverse: "Bayesian inference & calibration",
+  "soil-plant": "Soil–plant modeling",
+  transport: "Solute & contaminant transport",
+  recharge: "Groundwater recharge",
+  urban: "Green infrastructure & urban hydrology",
+  modeling: "Model & software development",
 }
 
-/** Split the file into entries, respecting nested braces. */
-function entries(text: string) {
-  const out: { type: string; key: string; body: string; source: string }[] = [];
-  const re = /@(\w+)\s*\{\s*([^,\s]+)\s*,/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text))) {
-    let depth = 1;
-    let i = re.lastIndex;
-    while (i < text.length && depth > 0) {
-      if (text[i] === '{') depth++;
-      else if (text[i] === '}') depth--;
-      i++;
-    }
-    out.push({ type: m[1].toLowerCase(), key: m[2], body: text.slice(re.lastIndex, i - 1), source: text.slice(m.index, i) });
-    re.lastIndex = i;
+export type Author = { last: string; first: string; initials: string; isMe: boolean }
+
+export type Publication = {
+  key: string
+  type: "article" | "incollection" | "inproceedings" | string
+  title: string
+  authors: Author[]
+  year: number
+  venue: string
+  series?: string
+  volume?: string
+  number?: string
+  pages?: string
+  doi?: string
+  url?: string
+  topics: string[]
+  selected: boolean
+  bibtex: string
+}
+
+const clean = (s = "") => s.replace(/[{}]/g, "").replace(/\s+/g, " ").trim()
+
+function parseAuthor(raw: string): Author {
+  const s = clean(raw)
+  let last: string, first: string
+  if (s.includes(",")) {
+    ;[last, first] = s.split(",").map((x) => x.trim())
+  } else {
+    const parts = s.split(" ")
+    last = parts.pop() ?? ""
+    first = parts.join(" ")
   }
-  return out;
-}
-
-/** Parse “name = {value}” fields. */
-function fields(body: string) {
-  const out: Record<string, string> = {};
-  const re = /(\w+)\s*=\s*\{/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(body))) {
-    let depth = 1;
-    let i = re.lastIndex;
-    while (i < body.length && depth > 0) {
-      if (body[i] === '{') depth++;
-      else if (body[i] === '}') depth--;
-      i++;
-    }
-    out[m[1].toLowerCase()] = body.slice(re.lastIndex, i - 1).replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
-    re.lastIndex = i;
-  }
-  return out;
-}
-
-/** “Last, First Middle” → “F. M. Last”. */
-function shortName(name: string) {
-  const [last, first = ''] = name.split(',').map((s) => s.trim());
   const initials = first
-    .split(/[\s]+/)
+    .split(/\s+/)
     .filter(Boolean)
-    .map((p) => p.split('-').map((q) => `${q[0]}.`).join('-'))
-    .join(' ');
-  return initials ? `${initials} ${last}` : last;
+    .map((p) => p.split("-").map((q) => q.replace(/\.$/, "")[0] + ".").join("-"))
+    .join(" ")
+  const isMe = last === "Brunetti" && /^Giuseppe\b/.test(first)
+  return { last, first, initials, isMe }
 }
 
-const ownerLast = profile.name.split(' ').slice(-1)[0];
-const ownerFirst = profile.name.split(' ')[0];
-const TYPES: Record<string, Publication['type']> = {
-  article: 'article',
-  incollection: 'chapter',
-  inbook: 'chapter',
-  inproceedings: 'conference',
-  conference: 'conference',
-};
+function toBibtex(key: string, type: string, tags: Record<string, string>) {
+  const fields = ["author", "title", "journal", "booktitle", "series", "publisher", "year", "volume", "number", "pages", "doi"]
+  const body = fields
+    .filter((f) => tags[f])
+    .map((f) => `  ${f} = {${clean(tags[f])}}`)
+    .join(",\n")
+  return `@${type}{${key},\n${body}\n}`
+}
 
-/** Strip “TODO …” remarks from notes so they don’t show on the site. */
-const cleanNote = (note?: string) => note?.replace(/\.?\s*TODO.*$/i, '').trim() || undefined;
+const entries: any[] = bibtexParse.toJSON(bibRaw)
 
-export const publications: Publication[] = entries(raw)
+export const publications: Publication[] = entries
+  .filter((e) => e.entryTags && e.entryType?.toLowerCase() !== "comment")
   .map((e) => {
-    const f = fields(e.body);
-    const tags = (f.keywords ?? '').split(',').map((k) => k.trim()).filter(Boolean);
-    const authors = (f.author ?? '').split(/\s+and\s+/).map((a) => {
-      const [last, first = ''] = a.split(',').map((s) => s.trim());
-      return { name: shortName(a), isOwner: last === ownerLast && first.startsWith(ownerFirst) };
-    });
-    const links = (['pdf', 'code', 'data'] as const)
-      .filter((k) => f[`url_${k}`])
-      .map((k) => ({ kind: k, url: f[`url_${k}`] }));
+    const t: Record<string, string> = Object.fromEntries(
+      Object.entries(e.entryTags as Record<string, string>).map(([k, v]) => [k.toLowerCase(), v]),
+    )
+    const type = e.entryType.toLowerCase()
+    const kw = (t.keywords ?? "").split(",").map((k) => k.trim()).filter(Boolean)
     return {
-      key: e.key,
-      type: TYPES[e.type] ?? 'article',
-      authors,
-      title: f.title ?? '',
-      venue: f.journal ?? f.booktitle ?? '',
-      year: Number(f.year),
-      volume: f.volume,
-      pages: f.pages,
-      doi: f.doi,
-      note: cleanNote(f.note),
-      award: f.award,
-      links,
-      tags: tags.filter((t) => t !== 'selected' && t !== 'hidden'),
-      selected: tags.includes('selected'),
-      hidden: tags.includes('hidden'),
-      bibtex: e.source.trim(),
-    };
+      key: e.citationKey,
+      type,
+      title: clean(t.title),
+      authors: (t.author ?? "").split(/\s+and\s+/).map(parseAuthor),
+      year: Number(t.year),
+      venue: clean(t.journal || t.booktitle),
+      series: clean(t.series) || undefined,
+      volume: clean(t.volume) || undefined,
+      number: clean(t.number) || undefined,
+      pages: clean(t.pages).replace("--", "–") || undefined,
+      doi: clean(t.doi) || undefined,
+      url: clean(t.url) || undefined,
+      topics: kw.filter((k) => k in TOPICS),
+      selected: kw.includes("selected"),
+      bibtex: toBibtex(e.citationKey, type, t),
+    }
   })
-  .filter((p) => !p.hidden)
-  .map(({ hidden: _hidden, ...p }) => p)
-  .sort((a, b) => b.year - a.year || a.title.localeCompare(b.title));
+  .sort((a, b) => b.year - a.year || a.authors[0].last.localeCompare(b.authors[0].last))
 
-/** The whole file, without hidden entries, for the “download all” link. */
-export const bibtexAll = publications.map((p) => p.bibtex).join('\n\n') + '\n';
+export const TYPE_LABEL: Record<string, string> = {
+  article: "Journal article",
+  incollection: "Book chapter",
+  inproceedings: "Conference paper",
+}
 
-export const byYear = (list: Publication[]) => {
-  const years = [...new Set(list.map((p) => p.year))].sort((a, b) => b - a);
-  return years.map((year) => ({ year, items: list.filter((p) => p.year === year) }));
-};
+export function citationLine(p: Publication) {
+  let s = p.venue
+  if (p.volume && p.volume !== String(p.year)) s += ` ${p.volume}`
+  if (p.number) s += `(${p.number})`
+  if (p.pages) s += `, ${p.pages}`
+  return s
+}
+
+export const pubByKey = (key: string) => publications.find((p) => p.key === key)

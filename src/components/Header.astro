@@ -1,157 +1,62 @@
 ---
-// Site header: name (link to home), main menu, language switch.
-import { profile } from '../lib/profile';
-import { sections, type Lang } from '../i18n/ui';
-import { getLang, useTranslations, localizedHref, alternateHref, isCurrent } from '../i18n/utils';
-
-const lang = getLang(Astro.url);
-const t = useTranslations(lang);
-const otherLang: Lang = lang === 'en' ? 'it' : 'en';
-const menu = sections.filter((s) => s.primary);
+import { SITE, LINKS } from "@consts"
+import { cn } from "@lib/utils"
+import Container from "@components/Container.astro"
+const { pathname } = Astro.url
+const section = "/" + (pathname.match(/[^/]+/g)?.[0] ?? "")
+const iconBtn = "flex size-9 rounded-md p-2 items-center justify-center stroke-current text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors"
 ---
 
-<a class="skip-link" href="#main">{t('site.skip')}</a>
-<header class="site-header">
-  <div class="wrapper bar">
-    <a class="site-name" href={localizedHref('/', lang)}>{profile.name}</a>
-
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" hidden>
-      {t('nav.menu')}
-    </button>
-
-    <nav id="site-menu" class="menu" aria-label={t('nav.label')}>
-      <ul>
-        {
-          menu.map((s) => (
-            <li>
-              <a
-                href={localizedHref(s.path, lang)}
-                aria-current={isCurrent(Astro.url, s.path) ? 'page' : undefined}
-              >
-                {t(`nav.${s.key}`)}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <a class="lang-switch" href={alternateHref(Astro.url, otherLang)} hreflang={otherLang} lang={otherLang}>
-        {t('lang.switch')}
+<header id="header" class="fixed top-0 inset-x-0 h-16 z-50 border-b border-transparent">
+  <Container size="xl" class="h-full">
+    <div class="h-full flex items-center justify-between gap-6">
+      <a href="/" class="flex items-center gap-2.5 shrink-0 group">
+        <span class="grid place-items-center size-8 rounded-md bg-accent-700 dark:bg-accent-400 text-white dark:text-stone-950 font-serif font-semibold text-sm">GB</span>
+        <span class="font-serif font-semibold text-lg text-stone-900 dark:text-stone-50 group-hover:text-accent-700 dark:group-hover:text-accent-300 transition-colors">{SITE.TITLE}</span>
       </a>
-    </nav>
-  </div>
+
+      <nav class="hidden lg:flex items-center gap-1 text-sm" aria-label="Main">
+        {LINKS.map((LINK) => (
+          <a href={LINK.HREF} aria-current={section === LINK.HREF ? "page" : undefined}
+            class={cn("px-3 py-1.5 rounded-md transition-colors",
+              section === LINK.HREF
+                ? "text-accent-800 dark:text-accent-200 bg-accent-100/70 dark:bg-accent-900/50 font-medium"
+                : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/60 dark:hover:bg-stone-800")}>
+            {LINK.TEXT}
+          </a>
+        ))}
+      </nav>
+
+      <div class="flex items-center gap-1">
+        <a href="/search" aria-label="Search" class={cn(iconBtn, "hidden lg:flex")}>
+          <svg class="size-full"><use href="/ui.svg#search"></use></svg>
+        </a>
+        <button id="header-theme-button" aria-label="Toggle light and dark theme" class={cn(iconBtn, "hidden lg:flex")}>
+          <svg class="size-full block dark:hidden"><use href="/ui.svg#sun"></use></svg>
+          <svg class="size-full hidden dark:block"><use href="/ui.svg#moon"></use></svg>
+        </button>
+        <button id="header-drawer-button" aria-label="Open menu" class={cn(iconBtn, "lg:hidden")}>
+          <svg id="drawer-open" class="size-full"><use href="/ui.svg#menu"></use></svg>
+          <svg id="drawer-close" class="size-full"><use href="/ui.svg#x"></use></svg>
+        </button>
+      </div>
+    </div>
+  </Container>
 </header>
 
-<script>
-  // Small screens: collapse the menu behind a button. Without JavaScript the menu stays visible.
-  const button = document.querySelector<HTMLButtonElement>('.menu-toggle');
-  const menu = document.getElementById('site-menu');
-  if (button && menu) {
-    document.documentElement.classList.add('js');
-    button.hidden = false;
-    button.addEventListener('click', () => {
-      const open = button.getAttribute('aria-expanded') === 'true';
-      button.setAttribute('aria-expanded', String(!open));
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
-        button.setAttribute('aria-expanded', 'false');
-        button.focus();
-      }
-    });
-  }
-</script>
-
 <style>
-  .site-header {
-    border-bottom: var(--rule);
-    font-family: var(--font-ui);
-  }
-
-  .bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-xs) var(--space-m);
-    padding-block: var(--space-s);
-  }
-
-  .site-name {
-    font-size: var(--step-1);
-    font-weight: 600;
-    color: var(--color-text);
-    text-decoration: none;
-  }
-
-  .menu {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-xs) var(--space-m);
-  }
-
-  .menu ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2xs) var(--space-m);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    max-width: none;
-  }
-
-  .menu a {
-    color: var(--color-text);
-    text-decoration: none;
-    padding-block: var(--space-3xs);
-    border-bottom: 2px solid transparent;
-  }
-
-  .menu a:hover {
-    border-bottom-color: var(--color-silt);
-  }
-
-  .menu a[aria-current='page'] {
-    border-bottom-color: var(--color-accent);
-  }
-
-  .menu .lang-switch {
-    font-size: var(--step--1);
-    color: var(--color-text-muted);
-  }
-
-  .menu-toggle {
-    font: inherit;
-    font-size: var(--step--1);
-    padding: var(--space-3xs) var(--space-xs);
-    color: var(--color-text);
-    background: transparent;
-    border: 1px solid var(--color-silt);
-    border-radius: var(--radius);
-    cursor: pointer;
-  }
-
-  @media (max-width: 52rem) {
-    :global(.js) .menu {
-      display: none;
-      flex-basis: 100%;
-      flex-direction: column;
-      align-items: flex-start;
-      padding-block: var(--space-xs);
-    }
-
-    :global(.js) .menu-toggle[aria-expanded='true'] + .menu {
-      display: flex;
-    }
-
-    .menu ul {
-      flex-direction: column;
-    }
-  }
-
-  @media (min-width: 52.01rem) {
-    .menu-toggle {
-      display: none;
-    }
-  }
+  #header-drawer-button > #drawer-open { display: block; }
+  #header-drawer-button > #drawer-close { display: none; }
+  #header-drawer-button.open > #drawer-open { display: none; }
+  #header-drawer-button.open > #drawer-close { display: block; }
 </style>
+
+<script is:inline>
+  (() => {
+    const btn = document.getElementById("header-drawer-button")
+    btn?.addEventListener("click", () => {
+      document.getElementById("drawer")?.classList.toggle("open")
+      btn.classList.toggle("open")
+    })
+  })()
+</script>

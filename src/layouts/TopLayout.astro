@@ -1,0 +1,12 @@
+---
+import Container from "@components/Container.astro"
+type Props = { title?: string; lede?: string }
+const { title, lede } = Astro.props
+---
+<div class="pt-28 pb-8">
+  <Container>
+    {title && <h1 class="page-heading">{title}</h1>}
+    {lede && <p class="page-lede">{lede}</p>}
+    <slot/>
+  </Container>
+</div>

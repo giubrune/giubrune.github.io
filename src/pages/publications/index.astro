@@ -1,0 +1,101 @@
+---
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import PubItem from "@components/PubItem.astro"
+import { PUBLICATIONS, SOCIALS } from "@consts"
+import { publications, TOPICS, TYPE_LABEL } from "@lib/publications"
+
+const years = [...new Set(publications.map((p) => p.year))].sort((a, b) => b - a)
+const types = [...new Set(publications.map((p) => p.type))]
+const topicCounts = Object.keys(TOPICS).map((t) => [t, publications.filter((p) => p.topics.includes(t)).length] as const)
+const scholar = SOCIALS.find((s) => s.NAME === "Google Scholar")?.HREF
+const orcid = SOCIALS.find((s) => s.NAME === "ORCID")?.HREF
+---
+
+<PageLayout title={PUBLICATIONS.TITLE} description={PUBLICATIONS.DESCRIPTION}>
+  <TopLayout title={PUBLICATIONS.TITLE}>
+    <p class="page-lede">
+      {publications.length} peer-reviewed publications indexed in Scopus/Web of Science. For citation metrics, see
+      <a class="link" href={scholar} target="_blank" rel="noopener">Google Scholar</a> and
+      <a class="link" href={orcid} target="_blank" rel="noopener">ORCID</a>.
+    </p>
+  </TopLayout>
+  <BottomLayout>
+    <!-- Filters -->
+    <div class="card !p-4 space-y-3" id="pub-filters">
+      <div class="relative">
+        <svg class="absolute size-5 left-2.5 top-2 stroke-stone-400 pointer-events-none"><use href="/ui.svg#search"/></svg>
+        <input id="pub-search" type="search" placeholder="Filter by title, author, journal or year…" autocomplete="off"
+          class="w-full pl-9 pr-3 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 border border-transparent focus:border-accent-500 outline-none text-stone-900 dark:text-stone-100 placeholder-stone-400" />
+      </div>
+      <div class="flex flex-wrap gap-1.5" role="group" aria-label="Filter by topic">
+        <button class="filter-btn chip hover:border-accent-500" data-topic="" aria-pressed="true">All topics</button>
+        {topicCounts.map(([t, n]) => (
+          <button class="filter-btn chip hover:border-accent-500" data-topic={t} aria-pressed="false">{TOPICS[t]} <span class="ml-1 opacity-60">{n}</span></button>
+        ))}
+      </div>
+      <div class="flex flex-wrap gap-1.5" role="group" aria-label="Filter by type">
+        <button class="filter-btn chip hover:border-accent-500" data-type="" aria-pressed="true">All types</button>
+        {types.map((t) => <button class="filter-btn chip hover:border-accent-500" data-type={t} aria-pressed="false">{TYPE_LABEL[t] ?? t}</button>)}
+      </div>
+      <div class="flex justify-between items-center text-xs text-stone-500">
+        <span id="pub-count" aria-live="polite">Showing {publications.length} of {publications.length}</span>
+        <a href="/publications.bib" download class="link">Download all as BibTeX</a>
+      </div>
+    </div>
+
+    <!-- List grouped by year -->
+    <div class="mt-6">
+      {years.map((y) => (
+        <section class="year-group" data-year={y}>
+          <h2 class="sticky top-16 z-10 py-2 bg-stone-50/95 dark:bg-stone-950/95 backdrop-blur font-serif text-xl font-semibold border-b border-stone-200 dark:border-stone-800">{y}</h2>
+          <ul>{publications.filter((p) => p.year === y).map((p) => <PubItem pub={p} />)}</ul>
+        </section>
+      ))}
+      <p id="pub-empty" class="hidden py-10 text-center text-stone-500">No publications match these filters.</p>
+    </div>
+  </BottomLayout>
+</PageLayout>
+
+<script>
+  const state = { q: "", topic: "", type: "" }
+  const items = [...document.querySelectorAll<HTMLElement>("li.pub")]
+  const groups = [...document.querySelectorAll<HTMLElement>(".year-group")]
+  const count = document.getElementById("pub-count")!
+  const empty = document.getElementById("pub-empty")!
+
+  function apply() {
+    let shown = 0
+    for (const li of items) {
+      const ok =
+        (!state.q || state.q.split(/\s+/).every((w) => li.dataset.text!.includes(w))) &&
+        (!state.topic || li.dataset.topics!.split(" ").includes(state.topic)) &&
+        (!state.type || li.dataset.type === state.type)
+      li.hidden = !ok
+      if (ok) shown++
+    }
+    for (const g of groups) g.hidden = !g.querySelector("li.pub:not([hidden])")
+    count.textContent = `Showing ${shown} of ${items.length}`
+    empty.classList.toggle("hidden", shown > 0)
+    const url = new URL(location.href)
+    state.topic ? url.searchParams.set("topic", state.topic) : url.searchParams.delete("topic")
+    history.replaceState(null, "", url)
+  }
+
+  function press(attr: "topic" | "type", value: string) {
+    state[attr] = value
+    document.querySelectorAll<HTMLButtonElement>(`[data-${attr}]`).forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.dataset[attr] === value)))
+    apply()
+  }
+
+  document.querySelectorAll<HTMLButtonElement>("[data-topic]").forEach((b) => b.addEventListener("click", () => press("topic", b.dataset.topic!)))
+  document.querySelectorAll<HTMLButtonElement>("[data-type]").forEach((b) => b.addEventListener("click", () => press("type", b.dataset.type!)))
+  document.getElementById("pub-search")!.addEventListener("input", (e) => {
+    state.q = (e.target as HTMLInputElement).value.trim().toLowerCase()
+    apply()
+  })
+  const initial = new URLSearchParams(location.search).get("topic")
+  if (initial) press("topic", initial)
+</script>

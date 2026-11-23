@@ -1,0 +1,66 @@
+---
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import { CV } from "@consts"
+import { editorial, sessions, talks } from "@data/cv"
+---
+
+<PageLayout title={CV.TITLE} description={CV.DESCRIPTION}>
+  <TopLayout title="Curriculum Vitae">
+    <p class="page-lede">The full CV, with positions, teaching, projects and the complete list of publications, is available as a PDF.</p>
+    <div class="mt-5">
+      <a href="/cv/Giuseppe_Brunetti_CV.pdf" class="btn-primary"><svg class="size-4 stroke-current"><use href="/ui.svg#download"/></svg>Download CV (PDF)</a>
+    </div>
+    <p class="mt-4 text-sm text-stone-500">
+      See also <a class="link" href="/experience">Experience</a>, <a class="link" href="/research">Research</a>,
+      <a class="link" href="/teaching">Teaching</a> and <a class="link" href="/publications">Publications</a>.
+    </p>
+  </TopLayout>
+  <BottomLayout>
+    <section>
+      <h2 class="section-title">Invited & keynote talks</h2>
+      <ul class="space-y-5">
+        {talks.map((t) => (
+          <li class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+            <div class="text-sm text-stone-500">{t.year} · {t.kind}</div>
+            <div>
+              <div class="font-medium text-stone-900 dark:text-stone-100">{t.title}</div>
+              <div class="text-sm text-stone-600 dark:text-stone-400">{t.venue}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="section-title">Conference convening & chairing</h2>
+      <ul class="space-y-3">
+        {sessions.map((s) => (
+          <li class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+            <div class="text-sm text-stone-500 tabular-nums">{s.year}</div>
+            <div class="text-stone-700 dark:text-stone-300">{s.text}</div>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="section-title">Editorial & reviewing</h2>
+      <dl class="space-y-5">
+        <div class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+          <dt class="text-sm text-stone-500">Associate Editor</dt>
+          <dd class="text-stone-800 dark:text-stone-200">{editorial.associateEditor.map((j, i) => <Fragment><em>{j}</em>{i < editorial.associateEditor.length - 1 ? "; " : ""}</Fragment>)}</dd>
+        </div>
+        <div class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+          <dt class="text-sm text-stone-500">Reviewer</dt>
+          <dd class="text-sm text-stone-600 dark:text-stone-400">{editorial.reviewer.join("; ")}</dd>
+        </div>
+        <div class="grid sm:grid-cols-[8rem_1fr] gap-1 sm:gap-4">
+          <dt class="text-sm text-stone-500">Project evaluator</dt>
+          <dd class="text-sm text-stone-600 dark:text-stone-400">{editorial.projectEvaluator.join("; ")}</dd>
+        </div>
+      </dl>
+    </section>
+  </BottomLayout>
+</PageLayout>

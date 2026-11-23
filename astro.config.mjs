@@ -1,21 +1,11 @@
-// @ts-check
-import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
+import { defineConfig } from "astro/config"
+import mdx from "@astrojs/mdx"
+import sitemap from "@astrojs/sitemap"
+import tailwind from "@astrojs/tailwind"
+import solidJs from "@astrojs/solid-js"
 
+// SITE_URL is set by the GitHub Pages workflow; change the fallback once the final URL is known.
 export default defineConfig({
-  // Public address of the site. Change this when a custom domain is added (see public/CNAME).
-  site: 'https://giubrune.github.io',
-  output: 'static',
-  trailingSlash: 'always',
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'it'],
-    // Pages without an Italian version are linked in English (see src/i18n/utils.ts).
-    routing: { prefixDefaultLocale: false },
-  },
-  integrations: [
-    sitemap({
-      i18n: { defaultLocale: 'en', locales: { en: 'en', it: 'it' } },
-    }),
-  ],
-});
+  site: process.env.SITE_URL ?? "https://giuseppe-brunetti.github.io",
+  integrations: [mdx(), sitemap(), solidJs(), tailwind({ applyBaseStyles: false })],
+})

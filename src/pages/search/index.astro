@@ -1,0 +1,28 @@
+---
+import { getCollection } from "astro:content"
+import PageLayout from "@layouts/PageLayout.astro"
+import TopLayout from "@layouts/TopLayout.astro"
+import BottomLayout from "@layouts/BottomLayout.astro"
+import Search from "@components/Search"
+import { SEARCH } from "@consts"
+import { publications } from "@lib/publications"
+
+const news = (await getCollection("news")).filter((n) => !n.data.draft)
+const software = (await getCollection("software")).filter((s) => !s.data.draft)
+
+const data = [
+  ...publications.map((p) => ({
+    kind: "Publication", title: p.title, href: p.url ?? "/publications",
+    summary: `${p.authors.map((a) => a.last).join(", ")} · ${p.venue} (${p.year})`,
+  })),
+  ...software.map((s) => ({ kind: "Software", title: s.data.title, href: `/software/${s.id}`, summary: s.data.summary })),
+  ...news.map((n) => ({ kind: "News", title: n.data.title, href: `/news/${n.id}`, summary: n.data.summary })),
+]
+---
+
+<PageLayout title={SEARCH.TITLE} description={SEARCH.DESCRIPTION}>
+  <TopLayout title={SEARCH.TITLE} lede={SEARCH.DESCRIPTION} />
+  <BottomLayout>
+    <Search client:load data={data} />
+  </BottomLayout>
+</PageLayout>

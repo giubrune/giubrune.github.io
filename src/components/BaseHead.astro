@@ -1,0 +1,49 @@
+---
+import { SITE, SOCIALS } from "@consts"
+
+interface Props {
+  title: string
+  description: string
+  image?: string
+  jsonLd?: Record<string, unknown>
+}
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const { title, description, image = "/open-graph.png", jsonLd } = Astro.props
+
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: SITE.AUTHOR,
+  jobTitle: SITE.ROLE,
+  affiliation: { "@type": "CollegeOrUniversity", name: "University of Calabria" },
+  url: Astro.site?.href,
+  sameAs: SOCIALS.filter((s) => s.HREF.startsWith("http")).map((s) => s.HREF),
+  knowsAbout: ["Vadose zone hydrology", "Soil physics", "Numerical modeling", "Bayesian inference", "HYDRUS"],
+}
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+<meta name="author" content={SITE.AUTHOR} />
+<link rel="canonical" href={canonicalURL} />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={new URL(image, Astro.site)} />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="sitemap" href="/sitemap-index.xml" />
+<link rel="alternate" type="application/rss+xml" title={`${SITE.TITLE} – News`} href={new URL("rss.xml", Astro.site)} />
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd ?? person)} />
+
+<script is:inline src="/js/theme.js"></script>
+<script is:inline src="/js/scroll.js"></script>
