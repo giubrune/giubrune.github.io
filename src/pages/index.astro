@@ -71,6 +71,7 @@ const news = (await getCollection("news")).filter((n) => !n.data.draft)
           <h2 class="eyebrow mb-3">Contact & profiles</h2>
           <SocialLinks variant="list" class="[&_span.w-28]:hidden" />
         </div>
+        <SoilMoistureMap compact />
       </aside>
     </section>
 
@@ -93,10 +94,6 @@ const news = (await getCollection("news")).filter((n) => !n.data.draft)
       </ul>
     </section>
 
-    <!-- Calabria soil moisture teaser -->
-    <section class="mt-14">
-      <SoilMoistureMap compact />
-    </section>
 
     <!-- Research themes -->
     <section class="mt-14">
