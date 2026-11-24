@@ -18,6 +18,7 @@ const person = {
   jobTitle: SITE.ROLE,
   affiliation: { "@type": "CollegeOrUniversity", name: "University of Calabria" },
   url: Astro.site?.href,
+  image: new URL("/photo.jpg", Astro.site).href,
   sameAs: SOCIALS.filter((s) => s.HREF.startsWith("http")).map((s) => s.HREF),
   knowsAbout: ["Vadose zone hydrology", "Soil physics", "Numerical modeling", "Bayesian inference", "HYDRUS"],
 }

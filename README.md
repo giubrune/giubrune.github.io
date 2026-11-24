@@ -24,7 +24,7 @@ npm run build      # type-check + static build into dist/
 | Positions (Experience timeline) | `src/content/positions/*.md` |
 | Software pages | `src/content/software/*.md` |
 | News posts | `src/content/news/*.md` |
-| Photo | add `public/photo.jpg` and replace the "GB" placeholder in `src/pages/index.astro` |
+| Photo | `public/photo.jpg` (square, ~480 px) |
 
 ### Publications (BibTeX)
 

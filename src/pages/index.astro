@@ -35,8 +35,8 @@ const news = (await getCollection("news")).filter((n) => !n.data.draft)
             <a href="/software" class="btn">Software</a>
           </div>
         </div>
-        <!-- Replace with <img src="/photo.jpg" ...> once a portrait is available -->
-        <div class="shrink-0 size-36 sm:size-44 rounded-full grid place-items-center bg-accent-700 dark:bg-accent-800 text-white font-serif text-5xl font-semibold ring-4 ring-white dark:ring-stone-900 shadow-sm" aria-hidden="true">GB</div>
+        <img src="/photo.jpg" alt="Portrait of Giuseppe Brunetti" width="176" height="176" loading="eager" decoding="async"
+          class="shrink-0 size-36 sm:size-44 rounded-full object-cover ring-4 ring-white dark:ring-stone-900 shadow-sm" />
       </div>
     </Container>
   </section>
