@@ -22,7 +22,6 @@ npm run build      # type-check + static build into dist/
 | Positions (Experience timeline) | `src/content/positions/*.md` |
 | Software pages | `src/content/software/*.md` |
 | News posts | `src/content/news/*.md` |
-| CV PDF | `public/cv/Giuseppe_Brunetti_CV.pdf` |
 | Photo | add `public/photo.jpg` and replace the "GB" placeholder in `src/pages/index.astro` |
 
 ### Publications (BibTeX)

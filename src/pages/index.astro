@@ -13,18 +13,17 @@ const selected = publications.filter((p) => p.selected)
 const software = (await getCollection("software")).filter((s) => !s.data.draft).sort((a, b) => a.data.order - b.data.order)
 const news = (await getCollection("news")).filter((n) => !n.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3)
-const nPapers = publications.filter((p) => p.type === "article").length
 ---
 
 <PageLayout title={SITE.TITLE} description={SITE.DESCRIPTION}>
   <!-- Hero -->
   <section class="pt-28 sm:pt-32 pb-12 border-b border-stone-200 dark:border-stone-800 bg-gradient-to-b from-accent-50/70 to-transparent dark:from-accent-900/20">
-    <Container>
+    <Container size="wide">
       <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-8">
         <div class="flex-1">
           <p class="eyebrow">{SITE.ROLE} · University of Calabria</p>
           <h1 class="mt-2 font-serif text-4xl sm:text-5xl font-semibold tracking-tight">{SITE.AUTHOR}</h1>
-          <p class="mt-4 text-lg leading-relaxed text-stone-600 dark:text-stone-400 max-w-2xl">
+          <p class="mt-4 text-lg leading-relaxed text-stone-600 dark:text-stone-400 max-w-3xl">
             I study how water, heat and solutes move through the <strong class="font-semibold text-stone-800 dark:text-stone-200">vadose zone</strong>,
             build physically based numerical models of these processes, and use Bayesian inference to understand what data can tell us about them.
             I also develop modules for the <strong class="font-semibold text-stone-800 dark:text-stone-200">HYDRUS</strong> software packages.
@@ -32,9 +31,6 @@ const nPapers = publications.filter((p) => p.type === "article").length
           <div class="mt-6 flex flex-wrap gap-2">
             <a href="/publications" class="btn-primary">Publications</a>
             <a href="/software" class="btn">Software</a>
-            <a href="/cv/Giuseppe_Brunetti_CV.pdf" class="btn">
-              <svg class="size-4 stroke-current"><use href="/ui.svg#download"/></svg> CV (PDF)
-            </a>
           </div>
         </div>
         <!-- Replace with <img src="/photo.jpg" ...> once a portrait is available -->
@@ -43,9 +39,9 @@ const nPapers = publications.filter((p) => p.type === "article").length
     </Container>
   </section>
 
-  <Container>
+  <Container size="wide">
     <!-- About -->
-    <section class="mt-12 grid gap-10 md:grid-cols-[1fr_16rem]">
+    <section class="mt-12 grid gap-10 md:grid-cols-[1fr_18rem] lg:gap-14">
       <div>
         <h2 class="section-title">About</h2>
         <div class="space-y-4 leading-relaxed">
@@ -73,50 +69,7 @@ const nPapers = publications.filter((p) => p.type === "article").length
           <h2 class="eyebrow mb-3">Contact & profiles</h2>
           <SocialLinks variant="list" class="[&_span.w-28]:hidden" />
         </div>
-        <div class="grid grid-cols-2 gap-3 text-center">
-          <div class="card !p-3"><div class="font-serif text-2xl font-semibold text-stone-900 dark:text-stone-50">{nPapers}</div><div class="text-xs text-stone-500">journal articles</div></div>
-          <div class="card !p-3"><div class="font-serif text-2xl font-semibold text-stone-900 dark:text-stone-50">{software.length}</div><div class="text-xs text-stone-500">software tools</div></div>
-        </div>
       </aside>
-    </section>
-
-    <!-- Research themes -->
-    <section class="mt-14">
-      <h2 class="section-title">Research themes</h2>
-      <div class="grid gap-4 md:grid-cols-3">
-        {researchFields.map((f) => (
-          <a href={`/publications?topic=${f.topic}`} class="card hover:border-accent-400 dark:hover:border-accent-600 transition-colors group">
-            <h3 class="font-serif text-lg font-semibold group-hover:text-accent-700 dark:group-hover:text-accent-300">{f.title}</h3>
-            <p class="mt-2 text-sm leading-relaxed text-stone-600 dark:text-stone-400">{f.text}</p>
-          </a>
-        ))}
-      </div>
-    </section>
-
-    <!-- Selected publications -->
-    <section class="mt-14">
-      <div class="flex items-baseline justify-between section-title">
-        <h2 class="font-serif">Selected publications</h2>
-        <a href="/publications" class="text-sm font-sans font-normal link no-underline">All {publications.length} →</a>
-      </div>
-      <ul>{selected.map((p) => <PubItem pub={p} showTopics={false} />)}</ul>
-    </section>
-
-    <!-- Software -->
-    <section class="mt-14">
-      <div class="flex items-baseline justify-between section-title">
-        <h2 class="font-serif">Software</h2>
-        <a href="/software" class="text-sm font-sans font-normal link no-underline">Details →</a>
-      </div>
-      <div class="grid gap-3 sm:grid-cols-2">
-        {software.map((s) => (
-          <a href={`/software/${s.id}`} class="card !p-4 hover:border-accent-400 dark:hover:border-accent-600 transition-colors group">
-            <div class="eyebrow !text-stone-500">{s.data.kind}</div>
-            <div class="mt-1 font-serif font-semibold text-stone-900 dark:text-stone-100 group-hover:text-accent-700 dark:group-hover:text-accent-300">{s.data.title}</div>
-            <div class="mt-1 text-sm text-stone-600 dark:text-stone-400">{s.data.summary}</div>
-          </a>
-        ))}
-      </div>
     </section>
 
     <!-- News -->
@@ -136,6 +89,45 @@ const nPapers = publications.filter((p) => p.type === "article").length
           </li>
         ))}
       </ul>
+    </section>
+
+    <!-- Research themes -->
+    <section class="mt-14">
+      <h2 class="section-title">Research themes</h2>
+      <div class="grid gap-4 md:grid-cols-3">
+        {researchFields.map((f) => (
+          <a href={`/publications?topic=${f.topic}`} class="card hover:border-accent-400 dark:hover:border-accent-600 transition-colors group">
+            <h3 class="font-serif text-lg font-semibold group-hover:text-accent-700 dark:group-hover:text-accent-300">{f.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-stone-600 dark:text-stone-400">{f.text}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Selected publications -->
+    <section class="mt-14">
+      <div class="flex items-baseline justify-between section-title">
+        <h2 class="font-serif">Selected publications</h2>
+        <a href="/publications" class="text-sm font-sans font-normal link no-underline">All publications →</a>
+      </div>
+      <ul>{selected.map((p) => <PubItem pub={p} showTopics={false} />)}</ul>
+    </section>
+
+    <!-- Software -->
+    <section class="mt-14">
+      <div class="flex items-baseline justify-between section-title">
+        <h2 class="font-serif">Software</h2>
+        <a href="/software" class="text-sm font-sans font-normal link no-underline">Details →</a>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        {software.map((s) => (
+          <a href={`/software/${s.id}`} class="card !p-4 hover:border-accent-400 dark:hover:border-accent-600 transition-colors group">
+            <div class="eyebrow !text-stone-500">{s.data.kind}</div>
+            <div class="mt-1 font-serif font-semibold text-stone-900 dark:text-stone-100 group-hover:text-accent-700 dark:group-hover:text-accent-300">{s.data.title}</div>
+            <div class="mt-1 text-sm text-stone-600 dark:text-stone-400">{s.data.summary}</div>
+          </a>
+        ))}
+      </div>
     </section>
   </Container>
 </PageLayout>

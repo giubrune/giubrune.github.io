@@ -1,6 +1,6 @@
 ---
 import { cn } from "@lib/utils"
-type Props = { size?: "sm" | "md" | "lg" | "xl"; class?: string }
+type Props = { size?: "sm" | "md" | "lg" | "wide" | "xl"; class?: string }
 const { size = "lg", class: klass } = Astro.props
 ---
 <div class={cn(
@@ -8,6 +8,7 @@ const { size = "lg", class: klass } = Astro.props
   size === "sm" && "max-w-screen-sm",
   size === "md" && "max-w-screen-md",
   size === "lg" && "max-w-4xl",
+  size === "wide" && "max-w-6xl",
   size === "xl" && "max-w-screen-xl",
   klass,
 )}>

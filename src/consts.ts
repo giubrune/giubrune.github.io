@@ -34,5 +34,5 @@ export const SOCIALS: Socials = [
   { NAME: "Google Scholar", ICON: "scholar", TEXT: "Google Scholar", HREF: "https://scholar.google.com/citations?user=ZeV8sR4AAAAJ" },
   { NAME: "ResearchGate", ICON: "network", TEXT: "ResearchGate", HREF: "https://www.researchgate.net/profile/Giuseppe-Brunetti-5" },
   { NAME: "Web of Science", ICON: "book", TEXT: "ResearcherID Y-5359-2019", HREF: "https://www.webofscience.com/wos/author/record/Y-5359-2019" },
-  // { NAME: "GitHub", ICON: "code", TEXT: "your-username", HREF: "https://github.com/your-username" },
+  { NAME: "GitHub", ICON: "code", TEXT: "giubrune", HREF: "https://github.com/giubrune" },
 ]
