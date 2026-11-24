@@ -29,6 +29,15 @@ const count = (t: string) => publications.filter((p) => p.topics.includes(t)).le
       </div>
     </section>
 
+    <section class="mt-12">
+      <h2 class="section-title">Tools</h2>
+      <a href="/soil-moisture" class="card block hover:border-accent-400 dark:hover:border-accent-600 transition-colors group">
+        <div class="eyebrow">Live · updated daily</div>
+        <div class="mt-1 font-serif text-lg font-semibold group-hover:text-accent-700 dark:group-hover:text-accent-300">Calabria soil moisture explorer</div>
+        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">Modelled water content of the top 28 cm for all 404 Calabrian municipalities over the last 31 days, with daily rainfall.</p>
+      </a>
+    </section>
+
     <section class="mt-12" id="map">
       <h2 class="section-title">Research map</h2>
       <ResearchMap />

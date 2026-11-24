@@ -1,0 +1,351 @@
+---
+// Calabria top-soil moisture map (0–28 cm), rendered at build time from the Open-Meteo snapshot.
+// compact = small static teaser (home page); otherwise the full interactive explorer.
+import { geoMercator, geoPath } from "d3-geo"
+import { feature, mesh } from "topojson-client"
+import { presimplify, simplify } from "topojson-simplify"
+import comuni from "@data/calabria-comuni.topo.json"
+import { loadSoilMoisture, smBin, SM_LABELS, median } from "@lib/soilMoisture"
+
+type Props = { compact?: boolean }
+const { compact = false } = Astro.props
+
+const data = loadSoilMoisture()
+// @ts-ignore – topojson typing
+let topo: any = structuredClone(comuni)
+if (compact) {
+  // @ts-ignore
+  topo = simplify(presimplify(topo), 2e-4)
+}
+const obj = topo.objects.comuni
+const fc = (feature(topo, obj) as any).features as any[]
+
+const W = compact ? 240 : 520
+const projection = geoMercator().fitWidth(W, { type: "FeatureCollection", features: fc } as any)
+const path = geoPath(projection).digits(compact ? 0 : 1)
+const [[, y0], [, y1]] = path.bounds({ type: "FeatureCollection", features: fc } as any)
+const H = Math.ceil(y1 - y0)
+projection.translate([projection.translate()[0], projection.translate()[1] - y0])
+
+const last = data ? data.dates.length - 1 : 0
+const shapes = fc.map((f) => {
+  const id = f.properties.istat as string
+  const v = data?.towns[id]?.s[last] ?? null
+  return { id, name: f.properties.name as string, prov: f.properties.prov as string, d: path(f) ?? "", b: smBin(v) }
+})
+const provBorders = path(mesh(topo, obj, (a: any, b: any) => a !== b && a.properties.prov !== b.properties.prov) as any) ?? ""
+const coast = path(mesh(topo, obj, (a: any, b: any) => a === b) as any) ?? ""
+
+const regional = data ? median(Object.values(data.towns).map((t) => t.s[last])) : null
+const regional7 = data && last >= 7 ? median(Object.values(data.towns).map((t) => t.s[last - 7])) : null
+const fmt = (v: number | null) => (v == null ? "–" : (v / 1000).toFixed(2))
+const day = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+const delta = regional != null && regional7 != null ? regional - regional7 : null
+const trend = delta == null ? "" : delta > 10 ? "wetter than a week ago" : delta < -10 ? "drier than a week ago" : "about the same as a week ago"
+
+// Client payload (full mode only)
+const payload = data && !compact
+  ? JSON.stringify({ dates: data.dates, towns: data.towns, generated: data.generated })
+  : ""
+const initial = "078102" // Rende
+---
+
+{compact ? (
+  <a href="/soil-moisture" class="sm-root group grid sm:grid-cols-[240px_1fr] gap-6 items-center card hover:border-accent-400 dark:hover:border-accent-600 transition-colors">
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full max-w-[240px] h-auto mx-auto" role="img" aria-label="Map of top-soil moisture in Calabrian municipalities">
+      {shapes.map((s) => <path d={s.d} data-b={s.b} class="sm-cell" />)}
+      <path d={coast} class="sm-coast" />
+    </svg>
+    <div>
+      <div class="eyebrow">Live tool · updated daily</div>
+      <h3 class="mt-1 font-serif text-2xl font-semibold group-hover:text-accent-700 dark:group-hover:text-accent-300">How wet is Calabria's soil today?</h3>
+      {data ? (
+        <p class="mt-2 text-stone-600 dark:text-stone-400 leading-relaxed">
+          Modelled water content of the top 28 cm for each of Calabria's 404 municipalities. Today the regional median is
+          <strong class="text-stone-900 dark:text-stone-100"> {fmt(regional)} m³/m³</strong>, {trend}.
+        </p>
+      ) : (
+        <p class="mt-2 text-stone-600 dark:text-stone-400">Modelled water content of the top 28 cm for each of Calabria's 404 municipalities, updated every day.</p>
+      )}
+      <span class="mt-3 inline-block text-sm link no-underline">Explore the map →</span>
+    </div>
+  </a>
+) : (
+  <div class="sm-root sm-full" data-initial={initial}>
+    {!data && (
+      <p class="card text-stone-600 dark:text-stone-400">The data could not be loaded during the last update. Please check back tomorrow.</p>
+    )}
+    {data && (
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_23rem]">
+        <!-- Map -->
+        <figure class="relative card !p-3">
+          <svg viewBox={`0 0 ${W} ${H}`} class="sm-map w-full h-auto max-h-[78vh] mx-auto block" role="group" aria-label="Map of top-soil moisture in Calabrian municipalities">
+            <defs>
+              <pattern id="sm-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="5" height="5" class="sm-na-bg" /><line x1="0" y1="0" x2="0" y2="5" class="sm-na-line" stroke-width="1.5" />
+              </pattern>
+            </defs>
+            <g class="sm-cells">
+              {shapes.map((s) => (
+                <path d={s.d} data-id={s.id} data-name={s.name} data-prov={s.prov} data-b={s.b} class="sm-cell" />
+              ))}
+            </g>
+            <path d={provBorders} class="sm-prov" />
+            <path d={coast} class="sm-coast" />
+            <path class="sm-selected" d="" />
+          </svg>
+          <div class="sm-tooltip hidden absolute pointer-events-none z-10 rounded-md border border-stone-200 dark:border-stone-700 bg-white/95 dark:bg-stone-900/95 px-2.5 py-1.5 text-xs shadow-sm"></div>
+          <figcaption class="mt-3 px-1">
+            <div class="text-xs text-stone-500 mb-1.5">Water content of the top 28 cm (m³/m³)</div>
+            <div class="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-stone-600 dark:text-stone-400">
+              {SM_LABELS.map((l, i) => (
+                <span class="flex items-center gap-1.5"><svg class="size-3.5" viewBox="0 0 10 10"><rect width="10" height="10" rx="2" class="sm-cell" data-b={i} /></svg>{l}</span>
+              ))}
+              <span class="flex items-center gap-1.5"><svg class="size-3.5" viewBox="0 0 10 10"><rect width="10" height="10" rx="2" fill="url(#sm-hatch)" /></svg>no data</span>
+            </div>
+          </figcaption>
+        </figure>
+
+        <!-- Side panel -->
+        <aside class="space-y-5">
+          <div class="card">
+            <div class="text-xs text-stone-500">Regional median, <span class="sm-date-label">{day(data.dates[last])}</span></div>
+            <div class="mt-1 flex items-baseline gap-2">
+              <span class="sm-regional font-serif text-4xl font-semibold text-stone-900 dark:text-stone-50 tabular-nums">{fmt(regional)}</span>
+              <span class="text-sm text-stone-500">m³/m³</span>
+            </div>
+            <div class="sm-regional-delta mt-1 text-sm text-stone-600 dark:text-stone-400">{delta == null ? "" : `${delta >= 0 ? "▲" : "▼"} ${Math.abs(delta / 1000).toFixed(2)} vs 7 days earlier`}</div>
+
+            <label class="mt-5 block text-xs text-stone-500" for="sm-slider">Day</label>
+            <div class="mt-1 flex items-center gap-3">
+              <button class="sm-play btn !px-2.5" aria-label="Play the last 31 days">
+                <svg class="sm-play-icon size-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z" /></svg>
+                <svg class="sm-pause-icon size-4 hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+              </button>
+              <input id="sm-slider" type="range" min="0" max={last} value={last} step="1" class="sm-slider flex-1 accent-accent-700 dark:accent-accent-400" aria-valuetext={day(data.dates[last])} />
+            </div>
+            <div class="mt-1 flex justify-between text-[11px] text-stone-500 tabular-nums">
+              <span>{day(data.dates[0])}</span><span>today</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <label class="block text-xs text-stone-500" for="sm-search">Find a municipality</label>
+            <input id="sm-search" list="sm-towns" autocomplete="off" placeholder="e.g. Rende, Crotone, Tropea"
+              class="mt-1 w-full px-3 py-1.5 rounded-md bg-stone-100 dark:bg-stone-800 border border-transparent focus:border-accent-500 outline-none text-stone-900 dark:text-stone-100 placeholder-stone-400" />
+            <datalist id="sm-towns">{[...shapes].sort((a, b) => a.name.localeCompare(b.name)).map((s) => <option value={`${s.name} (${s.prov})`} />)}</datalist>
+
+            <div class="sm-town mt-4">
+              <div class="flex items-baseline justify-between gap-2">
+                <h3 class="sm-town-name font-serif text-xl font-semibold"></h3>
+                <span class="sm-town-prov chip"></span>
+              </div>
+              <div class="mt-1 flex items-baseline gap-2">
+                <span class="sm-town-value font-serif text-3xl font-semibold text-stone-900 dark:text-stone-50 tabular-nums"></span>
+                <span class="text-sm text-stone-500">m³/m³</span>
+                <span class="sm-town-delta ml-auto text-sm text-stone-600 dark:text-stone-400"></span>
+              </div>
+              <div class="relative mt-3">
+                <svg class="sm-chart w-full h-auto" viewBox="0 0 320 210" role="img" aria-label="Daily rainfall and soil moisture over the last 31 days"></svg>
+                <div class="sm-chart-tip hidden absolute pointer-events-none rounded-md border border-stone-200 dark:border-stone-700 bg-white/95 dark:bg-stone-900/95 px-2 py-1 text-[11px] shadow-sm"></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+        <script type="application/json" id="sm-data" set:html={payload} />
+      </div>
+    )}
+  </div>
+)}
+
+<style is:global>
+  .sm-root {
+    --sm0: #cde2fb; --sm1: #9ec5f4; --sm2: #6da7ec; --sm3: #3987e5; --sm4: #256abf; --sm5: #184f95; --sm6: #0d366b;
+    --sm-line: #ffffff; --sm-prov: rgb(68 64 60 / .55); --sm-coast: rgb(68 64 60 / .8); --sm-na: #e7e5e4; --sm-na-line: #a8a29e;
+    --sm-sel: #1c1917; --sm-series: #256abf; --sm-rain: #a8a29e; --sm-grid: #e7e5e4; --sm-ink: #78716c;
+  }
+  html.dark .sm-root {
+    --sm0: #0d366b; --sm1: #184f95; --sm2: #256abf; --sm3: #3987e5; --sm4: #6da7ec; --sm5: #9ec5f4; --sm6: #cde2fb;
+    --sm-line: #0c0a09; --sm-prov: rgb(214 211 209 / .45); --sm-coast: rgb(214 211 209 / .7); --sm-na: #292524; --sm-na-line: #57534e;
+    --sm-sel: #fafaf9; --sm-series: #86b6ef; --sm-rain: #78716c; --sm-grid: #292524; --sm-ink: #a8a29e;
+  }
+  .sm-cell { stroke: var(--sm-line); stroke-width: .35; }
+  .sm-cell[data-b="0"] { fill: var(--sm0) } .sm-cell[data-b="1"] { fill: var(--sm1) } .sm-cell[data-b="2"] { fill: var(--sm2) }
+  .sm-cell[data-b="3"] { fill: var(--sm3) } .sm-cell[data-b="4"] { fill: var(--sm4) } .sm-cell[data-b="5"] { fill: var(--sm5) }
+  .sm-cell[data-b="6"] { fill: var(--sm6) } .sm-cell[data-b="-1"] { fill: url(#sm-hatch) var(--sm-na) }
+  .sm-na-bg { fill: var(--sm-na) } .sm-na-line { stroke: var(--sm-na-line) }
+  .sm-prov { fill: none; stroke: var(--sm-prov); stroke-width: 1; pointer-events: none; }
+  .sm-coast { fill: none; stroke: var(--sm-coast); stroke-width: 1; pointer-events: none; }
+  .sm-selected { fill: none; stroke: var(--sm-sel); stroke-width: 2.2; pointer-events: none; }
+  .sm-full .sm-cell { cursor: pointer; transition: fill 120ms linear; }
+  .sm-full .sm-cell:hover { stroke: var(--sm-sel); stroke-width: 1.2; }
+  @media (prefers-reduced-motion: reduce) { .sm-full .sm-cell { transition: none; } }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>(".sm-full")
+  const raw = document.getElementById("sm-data")?.textContent
+  if (root && raw) {
+    type Town = { s: (number | null)[]; p: (number | null)[]; e: number }
+    const data: { dates: string[]; towns: Record<string, Town> } = JSON.parse(raw)
+    const BREAKS = [100, 150, 200, 250, 300, 350]
+    const bin = (v: number | null | undefined) => (v == null ? -1 : BREAKS.filter((b) => v >= b).length)
+    const fmt = (v: number | null | undefined) => (v == null ? "–" : (v / 1000).toFixed(2))
+    const longDay = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+    const shortDay = (iso: string) => new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+    const last = data.dates.length - 1
+
+    const cells = [...root.querySelectorAll<SVGPathElement>(".sm-cell[data-id]")]
+    const byId = new Map(cells.map((c) => [c.dataset.id!, c]))
+    const slider = root.querySelector<HTMLInputElement>(".sm-slider")!
+    const tip = root.querySelector<HTMLElement>(".sm-tooltip")!
+    const selPath = root.querySelector<SVGPathElement>(".sm-selected")!
+    let day = last
+    let selected = root.dataset.initial!
+
+    function median(a: (number | null)[]) {
+      const s = a.filter((v): v is number => v != null).sort((x, y) => x - y)
+      if (!s.length) return null
+      const m = Math.floor(s.length / 2)
+      return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
+    }
+
+    function paint() {
+      for (const c of cells) c.dataset.b = String(bin(data.towns[c.dataset.id!]?.s[day]))
+      const all = Object.values(data.towns)
+      const r = median(all.map((t) => t.s[day]))
+      const r7 = day >= 7 ? median(all.map((t) => t.s[day - 7])) : null
+      root!.querySelector(".sm-regional")!.textContent = fmt(r)
+      root!.querySelector(".sm-regional-delta")!.textContent =
+        r != null && r7 != null ? `${r - r7 >= 0 ? "▲" : "▼"} ${Math.abs((r - r7) / 1000).toFixed(2)} vs 7 days earlier` : ""
+      root!.querySelector(".sm-date-label")!.textContent = longDay(data.dates[day]) + (day === last ? " (today)" : "")
+      slider.setAttribute("aria-valuetext", longDay(data.dates[day]))
+      renderTown()
+    }
+
+    // ── Town panel and chart ───────────────────────────────────────────────
+    const chart = root.querySelector<SVGSVGElement>(".sm-chart")!
+    const chartTip = root.querySelector<HTMLElement>(".sm-chart-tip")!
+    const CW = 320, L = 34, R = 8, RT = 6, RH = 48, ST = 76, SH = 110
+    const x = (i: number) => L + (i / last) * (CW - L - R)
+
+    function renderTown() {
+      const c = byId.get(selected)
+      const t = data.towns[selected]
+      if (!c) return
+      selPath.setAttribute("d", c.getAttribute("d")!)
+      root!.querySelector(".sm-town-name")!.textContent = c.dataset.name!
+      root!.querySelector(".sm-town-prov")!.textContent = c.dataset.prov!
+      root!.querySelector(".sm-town-value")!.textContent = fmt(t?.s[day])
+      const d7 = t && day >= 7 && t.s[day] != null && t.s[day - 7] != null ? t.s[day]! - t.s[day - 7]! : null
+      root!.querySelector(".sm-town-delta")!.textContent = d7 == null ? "" : `${d7 >= 0 ? "▲" : "▼"} ${Math.abs(d7 / 1000).toFixed(2)} in 7 days`
+      drawChart(t)
+    }
+
+    function drawChart(t: Town | undefined) {
+      if (!t) { chart.innerHTML = `<text x="160" y="105" text-anchor="middle" font-size="11" fill="var(--sm-ink)">No data for this municipality</text>`; return }
+      const pMax = Math.max(10, ...t.p.map((v) => (v ?? 0) / 10))
+      const yS = (v: number) => ST + SH - (v / 500) * SH // 0–0.50 m³/m³
+      const bw = Math.max(2, (CW - L - R) / (last + 1) - 2)
+      let s = ""
+      // rain panel
+      s += `<text x="${L}" y="${RT + 2}" font-size="10" fill="var(--sm-ink)">Rainfall (mm/day)</text>`
+      s += `<line x1="${L}" x2="${CW - R}" y1="${RT + RH}" y2="${RT + RH}" stroke="var(--sm-grid)" />`
+      s += `<text x="${L - 4}" y="${RT + 14}" font-size="9" text-anchor="end" fill="var(--sm-ink)">${Math.round(pMax)}</text>`
+      t.p.forEach((v, i) => {
+        const mm = (v ?? 0) / 10
+        if (mm <= 0) return
+        const h = Math.max(1.5, (mm / pMax) * (RH - 12))
+        s += `<rect x="${x(i) - bw / 2}" y="${RT + RH - h}" width="${bw}" height="${h}" rx="1.5" fill="var(--sm-rain)" />`
+      })
+      // soil moisture panel
+      s += `<text x="${L}" y="${ST - 6}" font-size="10" fill="var(--sm-ink)">Soil moisture, 0–28 cm (m³/m³)</text>`
+      for (const g of [0, 100, 200, 300, 400, 500]) {
+        s += `<line x1="${L}" x2="${CW - R}" y1="${yS(g)}" y2="${yS(g)}" stroke="var(--sm-grid)" />`
+        s += `<text x="${L - 4}" y="${yS(g) + 3}" font-size="9" text-anchor="end" fill="var(--sm-ink)">${(g / 1000).toFixed(1)}</text>`
+      }
+      let dpath = "", pen = false
+      t.s.forEach((v, i) => {
+        if (v == null) { pen = false; return }
+        dpath += `${pen ? "L" : "M"}${x(i).toFixed(1)},${yS(v).toFixed(1)}`; pen = true
+      })
+      s += `<path d="${dpath}" fill="none" stroke="var(--sm-series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />`
+      // x labels
+      for (const i of [0, Math.round(last / 2), last]) {
+        s += `<text x="${x(i)}" y="${ST + SH + 14}" font-size="9" text-anchor="${i === 0 ? "start" : i === last ? "end" : "middle"}" fill="var(--sm-ink)">${i === last ? "today" : shortDay(data.dates[i])}</text>`
+      }
+      // selected day marker
+      s += `<line x1="${x(day)}" x2="${x(day)}" y1="${RT + 6}" y2="${ST + SH}" stroke="var(--sm-sel)" stroke-opacity=".35" stroke-dasharray="3 3" />`
+      if (t.s[day] != null) s += `<circle cx="${x(day)}" cy="${yS(t.s[day]!)}" r="4" fill="var(--sm-series)" stroke="var(--sm-line)" stroke-width="2" />`
+      s += `<g class="sm-hover"></g><rect x="${L}" y="0" width="${CW - L - R}" height="210" fill="transparent" class="sm-hit" />`
+      chart.innerHTML = s
+
+      const hover = chart.querySelector(".sm-hover")!
+      const hit = chart.querySelector(".sm-hit")!
+      hit.addEventListener("pointermove", (e) => {
+        const ev = e as PointerEvent
+        const rect = chart.getBoundingClientRect()
+        const sx = ((ev.clientX - rect.left) / rect.width) * CW
+        const i = Math.max(0, Math.min(last, Math.round(((sx - L) / (CW - L - R)) * last)))
+        const v = t.s[i]
+        hover.innerHTML = `<line x1="${x(i)}" x2="${x(i)}" y1="${RT + 6}" y2="${ST + SH}" stroke="var(--sm-ink)" stroke-opacity=".6" />` +
+          (v != null ? `<circle cx="${x(i)}" cy="${yS(v)}" r="4" fill="var(--sm-series)" stroke="var(--sm-line)" stroke-width="2" />` : "")
+        chartTip.classList.remove("hidden")
+        chartTip.innerHTML = `<div class="font-medium text-stone-900 dark:text-stone-100">${shortDay(data.dates[i])}</div>` +
+          `<div class="text-stone-600 dark:text-stone-300">Soil moisture ${fmt(v)} m³/m³</div><div class="text-stone-600 dark:text-stone-300">Rain ${((t.p[i] ?? 0) / 10).toFixed(1)} mm</div>`
+        const px = (x(i) / CW) * rect.width
+        chartTip.style.left = `${Math.min(rect.width - 130, Math.max(0, px - 65))}px`
+        chartTip.style.top = `-8px`
+      })
+      hit.addEventListener("pointerleave", () => { hover.innerHTML = ""; chartTip.classList.add("hidden") })
+    }
+
+    // ── Map interactions ──────────────────────────────────────────────────
+    const fig = root.querySelector("figure")!
+    for (const c of cells) {
+      c.addEventListener("pointermove", (e) => {
+        const t = data.towns[c.dataset.id!]
+        tip.classList.remove("hidden")
+        tip.innerHTML = `<div class="font-medium text-stone-900 dark:text-stone-100">${c.dataset.name} <span class="text-stone-500">(${c.dataset.prov})</span></div>` +
+          `<div class="text-stone-600 dark:text-stone-300">${fmt(t?.s[day])} m³/m³ · rain ${t?.p[day] != null ? (t.p[day]! / 10).toFixed(1) : "–"} mm</div>`
+        const r = fig.getBoundingClientRect()
+        const px = (e as PointerEvent).clientX - r.left, py = (e as PointerEvent).clientY - r.top
+        tip.style.left = `${Math.min(r.width - 190, px + 14)}px`
+        tip.style.top = `${py + 14}px`
+      })
+      c.addEventListener("pointerleave", () => tip.classList.add("hidden"))
+      c.addEventListener("click", () => { selected = c.dataset.id!; renderTown() })
+    }
+
+    slider.addEventListener("input", () => { day = +slider.value; paint() })
+
+    const search = root.querySelector<HTMLInputElement>("#sm-search")!
+    search.addEventListener("change", () => {
+      const q = search.value.replace(/\s*\([A-Z]{2}\)\s*$/, "").trim().toLowerCase()
+      const c = cells.find((x) => x.dataset.name!.toLowerCase() === q) ?? cells.find((x) => x.dataset.name!.toLowerCase().startsWith(q))
+      if (c) { selected = c.dataset.id!; renderTown(); search.value = "" }
+    })
+
+    // Play through the 31 days
+    const play = root.querySelector<HTMLButtonElement>(".sm-play")!
+    let timer: number | undefined
+    function stop() {
+      window.clearInterval(timer); timer = undefined
+      play.querySelector(".sm-play-icon")!.classList.remove("hidden"); play.querySelector(".sm-pause-icon")!.classList.add("hidden")
+      play.setAttribute("aria-label", "Play the last 31 days")
+    }
+    play.addEventListener("click", () => {
+      if (timer) return stop()
+      if (day >= last) day = 0
+      play.querySelector(".sm-play-icon")!.classList.add("hidden"); play.querySelector(".sm-pause-icon")!.classList.remove("hidden")
+      play.setAttribute("aria-label", "Pause")
+      timer = window.setInterval(() => {
+        slider.value = String(day); paint()
+        if (day >= last) return stop()
+        day++
+      }, 280)
+    })
+
+    paint()
+  }
+</script>

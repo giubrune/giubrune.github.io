@@ -4,6 +4,7 @@ import PageLayout from "@layouts/PageLayout.astro"
 import Container from "@components/Container.astro"
 import PubItem from "@components/PubItem.astro"
 import ResearchMap from "@components/ResearchMap.astro"
+import SoilMoistureMap from "@components/SoilMoistureMap.astro"
 import SocialLinks from "@components/SocialLinks.astro"
 import { SITE } from "@consts"
 import { publications } from "@lib/publications"
@@ -90,6 +91,11 @@ const news = (await getCollection("news")).filter((n) => !n.data.draft)
           </li>
         ))}
       </ul>
+    </section>
+
+    <!-- Calabria soil moisture teaser -->
+    <section class="mt-14">
+      <SoilMoistureMap compact />
     </section>
 
     <!-- Research themes -->

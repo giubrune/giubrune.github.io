@@ -20,6 +20,7 @@ npm run build      # type-check + static build into dist/
 | Publications | `src/data/publications.bib` (see below) |
 | Research lines, projects, awards, teaching, talks, editorial roles, education | `src/data/cv.ts` |
 | Research map (positions, field sites, co-authors' institutions, per-country paper counts) | `src/data/places.ts` |
+| Calabria soil-moisture map (page text) | `src/pages/soil-moisture.astro`, data script `scripts/fetch-soil-moisture.mjs` |
 | Positions (Experience timeline) | `src/content/positions/*.md` |
 | Software pages | `src/content/software/*.md` |
 | News posts | `src/content/news/*.md` |
@@ -47,6 +48,15 @@ tags: ["Paper"]
 
 Body in Markdown.
 ```
+
+## Calabria soil-moisture map
+
+The page `/soil-moisture` is rebuilt every night by the GitHub Actions workflow (schedule in `.github/workflows/deploy.yml`).
+The workflow runs `npm run fetch:soil`, which downloads the last 31 days of modelled soil moisture (0–7 and 7–28 cm) and rainfall from
+[Open-Meteo](https://open-meteo.com/) for the centre of each of the 404 municipalities (about 9 seconds, ~400 API calls of the 10,000/day free quota)
+and writes `src/data/generated/soil-moisture.json` (~90 kB, not committed). If the download fails, the previous day's data are reused.
+
+Nothing is stored on your computer. To preview the map locally, run `npm run fetch:soil` once before `npm run dev`.
 
 ## Deploy (GitHub Pages)
 

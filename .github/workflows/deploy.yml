@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Daily rebuild to refresh the Calabria soil-moisture map (04:23 UTC ≈ 05:23/06:23 in Italy)
+    - cron: "23 4 * * *"
 
 permissions:
   contents: read
@@ -27,6 +30,25 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+
+      # Keep the last good soil-moisture snapshot in case today's download fails
+      - name: Restore previous soil-moisture data
+        uses: actions/cache/restore@v4
+        with:
+          path: src/data/generated
+          key: soil-moisture-${{ github.run_id }}
+          restore-keys: soil-moisture-
+      - name: Download soil moisture (Open-Meteo)
+        id: soil
+        continue-on-error: true
+        run: npm run fetch:soil
+      - name: Save soil-moisture data
+        if: steps.soil.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: src/data/generated
+          key: soil-moisture-${{ github.run_id }}
+
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
