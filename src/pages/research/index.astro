@@ -5,6 +5,7 @@ import BottomLayout from "@layouts/BottomLayout.astro"
 import { RESEARCH } from "@consts"
 import { researchFields, projects, awards } from "@data/cv"
 import { publications } from "@lib/publications"
+import ResearchMap from "@components/ResearchMap.astro"
 const count = (t: string) => publications.filter((p) => p.topics.includes(t)).length
 ---
 
@@ -26,6 +27,11 @@ const count = (t: string) => publications.filter((p) => p.topics.includes(t)).le
           </div>
         ))}
       </div>
+    </section>
+
+    <section class="mt-12" id="map">
+      <h2 class="section-title">Research map</h2>
+      <ResearchMap />
     </section>
 
     <section class="mt-12">

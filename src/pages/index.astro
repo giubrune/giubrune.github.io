@@ -3,6 +3,7 @@ import { getCollection } from "astro:content"
 import PageLayout from "@layouts/PageLayout.astro"
 import Container from "@components/Container.astro"
 import PubItem from "@components/PubItem.astro"
+import ResearchMap from "@components/ResearchMap.astro"
 import SocialLinks from "@components/SocialLinks.astro"
 import { SITE } from "@consts"
 import { publications } from "@lib/publications"
@@ -102,6 +103,12 @@ const news = (await getCollection("news")).filter((n) => !n.data.draft)
           </a>
         ))}
       </div>
+    </section>
+
+    <!-- Research map -->
+    <section class="mt-14">
+      <h2 class="section-title">Where the research happens</h2>
+      <ResearchMap />
     </section>
 
     <!-- Selected publications -->

@@ -1,0 +1,155 @@
+---
+// Static SVG research map, rendered at build time (no external map tiles or trackers).
+import { geoMercator, geoPath, type GeoProjection } from "d3-geo"
+import { feature } from "topojson-client"
+import world from "world-atlas/countries-50m.json"
+import { places, type Place } from "@data/places"
+import { pubByKey, citationLine } from "@lib/publications"
+
+const HIGHLIGHT = new Set(["380", "040", "203", "276", "191", "686", "840"])
+// @ts-ignore – topojson typing
+const countries = feature(world as any, (world as any).objects.countries).features as any[]
+
+type Panel = { id: Place["panel"]; title: string; w: number; h: number; lon: [number, number]; lat: [number, number] }
+const panels: Panel[] = [
+  { id: "usa", title: "California, USA", w: 300, h: 420, lon: [-125, -114], lat: [32, 42.5] },
+  { id: "europe", title: "Italy & Central Europe", w: 560, h: 420, lon: [7, 21], lat: [37.5, 52.5] },
+  { id: "africa", title: "Senegal", w: 240, h: 420, lon: [-18, -11.5], lat: [11.5, 17.5] },
+]
+
+function build(p: Panel) {
+  const bounds = {
+    type: "Feature",
+    geometry: { type: "MultiPoint", coordinates: [[p.lon[0], p.lat[0]], [p.lon[1], p.lat[1]]] },
+    properties: {},
+  } as any
+  const proj: GeoProjection = geoMercator().fitExtent([[0, 0], [p.w, p.h]], bounds).clipExtent([[0, 0], [p.w, p.h]])
+  const path = geoPath(proj).digits(1)
+  const shapes = countries
+    .map((c) => ({ d: path(c) ?? "", hl: HIGHLIGHT.has(String(c.id)) }))
+    .filter((s) => s.d.length > 0)
+  const pins = places
+    .filter((pl) => pl.panel === p.id)
+    .map((pl) => {
+      const [x, y] = proj(pl.coords) as [number, number]
+      return { ...pl, x, y }
+    })
+  return { ...p, shapes, pins }
+}
+const built = panels.map(build)
+
+// Label placement tweaks to avoid overlaps in the dense European cluster
+const LABEL: Record<string, { dx: number; dy: number; anchor: "start" | "end" | "middle" }> = {
+  dresden: { dx: 0, dy: -12, anchor: "middle" },
+  prague: { dx: 10, dy: 4, anchor: "start" },
+  vienna: { dx: 10, dy: 8, anchor: "start" },
+  brescia: { dx: -10, dy: 4, anchor: "end" },
+  croatia: { dx: 10, dy: 6, anchor: "start" },
+  rende: { dx: 10, dy: 5, anchor: "start" },
+  senegal: { dx: 10, dy: 5, anchor: "start" },
+  davis: { dx: 10, dy: 5, anchor: "start" },
+  riverside: { dx: -10, dy: 5, anchor: "end" },
+}
+const short = (n: string) => n.split(",")[0].replace(" (Cosenza)", "")
+const initial = "rende"
+---
+
+<div class="research-map">
+  <div class="grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,300fr)_minmax(0,560fr)_minmax(0,240fr)]">
+    {built.map((p) => (
+      <figure class:list={["rounded-lg border border-stone-200 dark:border-stone-800 bg-sky-50/60 dark:bg-[#0d1517] overflow-hidden", p.id === "europe" && "col-span-2 order-first md:col-span-1 md:order-none"]}>
+        <svg viewBox={`0 0 ${p.w} ${p.h}`} class="w-full h-auto block" role="group" aria-label={`Map: ${p.title}`}>
+          <g>
+            {p.shapes.map((s) => (
+              <path d={s.d} class={s.hl
+                ? "fill-accent-100 dark:fill-accent-900/70 stroke-white dark:stroke-stone-900"
+                : "fill-stone-200 dark:fill-stone-800 stroke-white dark:stroke-stone-900"} stroke-width="0.6" />
+            ))}
+          </g>
+          {p.pins.map((pin) => {
+            const l = LABEL[pin.id]
+            return (
+              <g class="pin cursor-pointer outline-none" data-place={pin.id} tabindex="0" role="button"
+                aria-label={`${pin.name}, ${pin.period}`} aria-pressed={pin.id === initial ? "true" : "false"}>
+                <circle cx={pin.x} cy={pin.y} r="14" class="pin-halo fill-accent-500/0" />
+                <circle cx={pin.x} cy={pin.y} r={pin.kind === "position" ? 6 : 5}
+                  class={pin.kind === "position"
+                    ? "pin-dot fill-accent-700 dark:fill-accent-400 stroke-white dark:stroke-stone-900"
+                    : "pin-dot fill-amber-500 stroke-white dark:stroke-stone-900"} stroke-width="2" />
+                <text x={pin.x + l.dx} y={pin.y + l.dy} text-anchor={l.anchor}
+                  class="pin-label fill-stone-700 dark:fill-stone-300 text-[15px] font-medium" paint-order="stroke"
+                  stroke="currentColor" style="stroke: var(--map-halo); stroke-width: 3px;">{short(pin.name)}</text>
+              </g>
+            )
+          })}
+        </svg>
+        <figcaption class="px-3 py-1.5 text-xs text-stone-500 border-t border-stone-200 dark:border-stone-800">{p.title}</figcaption>
+      </figure>
+    ))}
+  </div>
+
+  <div class="mt-3 flex flex-wrap items-center gap-4 text-xs text-stone-500">
+    <span class="flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-full bg-accent-700 dark:bg-accent-400"></span>Positions & research stays</span>
+    <span class="flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-full bg-amber-500"></span>Field studies</span>
+    <span>Select a point to see what I worked on there.</span>
+  </div>
+
+  <div class="mt-4">
+    {places.map((pl) => {
+      const papers = pl.papers.map(pubByKey).filter((p) => p !== undefined)
+      return (
+        <article class="place-card card" data-card={pl.id} hidden={pl.id !== initial}>
+          <div class="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 class="font-serif text-xl font-semibold">{pl.name}{pl.country !== pl.name && <span class="font-sans text-sm font-normal text-stone-500">, {pl.country}</span>}</h3>
+            <span class={`chip ${pl.kind === "field" ? "!border-amber-400 !text-amber-700 dark:!text-amber-400" : ""}`}>{pl.period}</span>
+          </div>
+          <ul class="mt-2 text-sm text-accent-700 dark:text-accent-300 space-y-0.5">{pl.roles.map((r) => <li>{r}</li>)}</ul>
+          <p class="mt-2 text-stone-600 dark:text-stone-400 leading-relaxed">{pl.text}</p>
+          {papers.length > 0 && (
+            <div class="mt-3">
+              <div class="eyebrow !text-stone-500 mb-1">Related papers</div>
+              <ul class="space-y-1.5 text-sm">
+                {papers.map((p) => (
+                  <li>
+                    <a href={p!.url} target="_blank" rel="noopener" class="text-stone-800 dark:text-stone-200 hover:text-accent-700 dark:hover:text-accent-300">{p!.title}</a>
+                    <span class="text-stone-500"> · <em>{p!.venue}</em> ({p!.year})</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </article>
+      )
+    })}
+  </div>
+</div>
+
+<style is:global>
+  .research-map { --map-halo: #f0f9ff; }
+  html.dark .research-map { --map-halo: #0d1517; }
+  .research-map .pin .pin-dot { transition: r 150ms ease, transform 150ms ease; }
+  .research-map .pin:hover .pin-halo,
+  .research-map .pin:focus-visible .pin-halo { fill: rgb(52 141 135 / 0.18); }
+  .research-map .pin[aria-pressed="true"] .pin-halo { fill: rgb(52 141 135 / 0.28); }
+  .research-map .pin[aria-pressed="true"] .pin-label { font-weight: 700; }
+  .research-map .pin[aria-pressed="true"] .pin-dot { r: 8; }
+  @media (max-width: 767px) { .research-map .pin-label { font-size: 19px; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .research-map .pin[aria-pressed="true"] .pin-halo { animation: pin-pulse 2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes pin-pulse { 0% { transform: scale(.6); opacity: 1 } 100% { transform: scale(1.6); opacity: 0 } }
+  }
+</style>
+
+<script>
+  function select(id: string) {
+    document.querySelectorAll<SVGGElement>(".research-map .pin").forEach((g) =>
+      g.setAttribute("aria-pressed", String(g.dataset.place === id)))
+    document.querySelectorAll<HTMLElement>(".research-map .place-card").forEach((c) => (c.hidden = c.dataset.card !== id))
+  }
+  document.querySelectorAll<SVGGElement>(".research-map .pin").forEach((g) => {
+    g.addEventListener("click", () => select(g.dataset.place!))
+    g.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(g.dataset.place!) }
+    })
+  })
+</script>
