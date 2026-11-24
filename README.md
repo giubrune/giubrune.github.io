@@ -19,7 +19,7 @@ npm run build      # type-check + static build into dist/
 | Bio, hero text | `src/pages/index.astro` |
 | Publications | `src/data/publications.bib` (see below) |
 | Research lines, projects, awards, teaching, talks, editorial roles, education | `src/data/cv.ts` |
-| Research map (places, roles, related papers) | `src/data/places.ts` |
+| Research map (positions, field sites, co-authors' institutions, per-country paper counts) | `src/data/places.ts` |
 | Positions (Experience timeline) | `src/content/positions/*.md` |
 | Software pages | `src/content/software/*.md` |
 | News posts | `src/content/news/*.md` |

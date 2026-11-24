@@ -1,99 +1,155 @@
 ---
-// Static SVG research map, rendered at build time (no external map tiles or trackers).
-import { geoMercator, geoPath, type GeoProjection } from "d3-geo"
+// Interactive research map, rendered to static SVG at build time
+// (Natural Earth outlines via world-atlas; no external tiles, no tracking).
+import { geoNaturalEarth1, geoPath } from "d3-geo"
 import { feature } from "topojson-client"
+import { presimplify, simplify, filter, filterWeight } from "topojson-simplify"
 import world from "world-atlas/countries-50m.json"
-import { places, type Place } from "@data/places"
-import { pubByKey, citationLine } from "@lib/publications"
+import { places, countryPapers, type PlaceKind } from "@data/places"
+import { pubByKey } from "@lib/publications"
 
-const HIGHLIGHT = new Set(["380", "040", "203", "276", "191", "686", "840"])
-// @ts-ignore – topojson typing
-const countries = feature(world as any, (world as any).objects.countries).features as any[]
+const ISO_NUM: Record<string, string> = {
+  IT: "380", AT: "040", US: "840", CZ: "203", DE: "276", CN: "156", IL: "376", FR: "250",
+  NZ: "554", BE: "056", BR: "076", NL: "528", SN: "686", HR: "191", LT: "440", JP: "392",
+}
+const countByNum = new Map(Object.entries(countryPapers).map(([iso, ps]) => [ISO_NUM[iso], ps.length]))
+const nCountries = Object.keys(countryPapers).length
 
-type Panel = { id: Place["panel"]; title: string; w: number; h: number; lon: [number, number]; lat: [number, number] }
-const panels: Panel[] = [
-  { id: "usa", title: "California, USA", w: 300, h: 420, lon: [-125, -114], lat: [32, 42.5] },
-  { id: "europe", title: "Italy & Central Europe", w: 560, h: 420, lon: [7, 21], lat: [37.5, 52.5] },
-  { id: "africa", title: "Senegal", w: 240, h: 420, lon: [-18, -11.5], lat: [11.5, 17.5] },
+const bin = (n: number) => (n >= 20 ? 5 : n >= 10 ? 4 : n >= 5 ? 3 : n >= 2 ? 2 : 1)
+const BIN_CLASS = [
+  "fill-stone-200 dark:fill-stone-800",
+  "fill-accent-100 dark:fill-accent-900/80",
+  "fill-accent-200 dark:fill-accent-800",
+  "fill-accent-300 dark:fill-accent-700",
+  "fill-accent-400/80 dark:fill-accent-600",
+  "fill-accent-500/80 dark:fill-accent-500/90",
 ]
 
-function build(p: Panel) {
-  const bounds = {
-    type: "Feature",
-    geometry: { type: "MultiPoint", coordinates: [[p.lon[0], p.lat[0]], [p.lon[1], p.lat[1]]] },
-    properties: {},
-  } as any
-  const proj: GeoProjection = geoMercator().fitExtent([[0, 0], [p.w, p.h]], bounds).clipExtent([[0, 0], [p.w, p.h]])
-  const path = geoPath(proj).digits(1)
-  const shapes = countries
-    .map((c) => ({ d: path(c) ?? "", hl: HIGHLIGHT.has(String(c.id)) }))
-    .filter((s) => s.d.length > 0)
-  const pins = places
-    .filter((pl) => pl.panel === p.id)
-    .map((pl) => {
-      const [x, y] = proj(pl.coords) as [number, number]
-      return { ...pl, x, y }
-    })
-  return { ...p, shapes, pins }
-}
-const built = panels.map(build)
+// Simplify the 1:50m outlines to keep the page light (~40 kB gzipped) while staying crisp when zoomed
+const Q = 0.04
+// @ts-ignore – topojson typing
+const pre = presimplify(structuredClone(world as any))
+// @ts-ignore
+const topo = filter(simplify(pre, Q), filterWeight(pre, Q * 4)) as any
+const countries = (feature(topo, topo.objects.countries) as any).features as any[]
 
-// Label placement tweaks to avoid overlaps in the dense European cluster
-const LABEL: Record<string, { dx: number; dy: number; anchor: "start" | "end" | "middle" }> = {
-  dresden: { dx: 0, dy: -12, anchor: "middle" },
-  prague: { dx: 10, dy: 4, anchor: "start" },
-  vienna: { dx: 10, dy: 8, anchor: "start" },
-  brescia: { dx: -10, dy: 4, anchor: "end" },
-  croatia: { dx: 10, dy: 6, anchor: "start" },
-  rende: { dx: 10, dy: 5, anchor: "start" },
-  senegal: { dx: 10, dy: 5, anchor: "start" },
-  davis: { dx: 10, dy: 5, anchor: "start" },
-  riverside: { dx: -10, dy: 5, anchor: "end" },
+const W = 1000
+const worldBounds = { type: "MultiPoint", coordinates: [[-170, -50], [180, 72], [0, -50], [0, 72]] } as any
+const projection = geoNaturalEarth1().fitWidth(W, worldBounds)
+const [[, y0], [, y1]] = geoPath(projection).bounds(worldBounds)
+projection.translate([projection.translate()[0], projection.translate()[1] - y0])
+const H = Math.round(y1 - y0)
+projection.clipExtent([[0, 0], [W, H]])
+const path = geoPath(projection).digits(1)
+
+const shapes = countries
+  .filter((c) => String(c.id) !== "010") // Antarctica
+  .map((c) => {
+    const n = countByNum.get(String(c.id)) ?? 0
+    return { d: path(c) ?? "", cls: BIN_CLASS[n ? bin(n) : 0], n, name: c.properties?.name as string }
+  })
+  .filter((s) => s.d)
+
+// Zoom presets: [lonMin, latMin, lonMax, latMax]
+const VIEWS: Record<string, { label: string; box: [number, number, number, number] }> = {
+  world: { label: "World", box: [-170, -50, 180, 72] },
+  europe: { label: "Europe", box: [-3, 37.5, 27, 56] },
+  americas: { label: "United States", box: [-127, 25, -72, 49.5] },
 }
-const short = (n: string) => n.split(",")[0].replace(" (Cosenza)", "")
+function viewBox(b: [number, number, number, number]) {
+  const pts: [number, number][] = []
+  for (let i = 0; i <= 8; i++) {
+    const lon = b[0] + ((b[2] - b[0]) * i) / 8
+    pts.push([lon, b[1]], [lon, b[3]])
+  }
+  pts.push([b[0], (b[1] + b[3]) / 2], [b[2], (b[1] + b[3]) / 2])
+  const xy = pts.map((p) => projection(p) as [number, number])
+  let x0 = Math.min(...xy.map((p) => p[0])), x1 = Math.max(...xy.map((p) => p[0]))
+  let ya = Math.min(...xy.map((p) => p[1])), yb = Math.max(...xy.map((p) => p[1]))
+  // match the SVG aspect ratio
+  const ar = W / H
+  let w = x1 - x0, h = yb - ya
+  if (w / h > ar) { const nh = w / ar; ya -= (nh - h) / 2; h = nh } else { const nw = h * ar; x0 -= (nw - w) / 2; w = nw }
+  return [x0, ya, w, h].map((v) => Math.round(v * 10) / 10)
+}
+const views = Object.fromEntries(Object.entries(VIEWS).map(([k, v]) => [k, viewBox(v.box)]))
+const europeBox = VIEWS.europe.box
+const inBox = (b: number[], c: [number, number]) => c[0] >= b[0] && c[0] <= b[2] && c[1] >= b[1] && c[1] <= b[3]
+const regionOf = (c: [number, number]) => (inBox(europeBox, c) ? "europe" : inBox(VIEWS.americas.box, c) ? "americas" : "")
+
+const KIND_LABEL: Record<PlaceKind, string> = { position: "Positions", site: "Field & experimental sites", partner: "Co-authors' institutions" }
+const order: PlaceKind[] = ["partner", "site", "position"] // draw positions on top
+const pins = places
+  .map((p) => {
+    const [x, y] = projection(p.coords) as [number, number]
+    return { ...p, x, y, region: regionOf(p.coords), label: p.label ?? { dx: 9, dy: 4, anchor: "start" as const } }
+  })
+  .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
 const initial = "rende"
 ---
 
-<div class="research-map">
-  <div class="grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,300fr)_minmax(0,560fr)_minmax(0,240fr)]">
-    {built.map((p) => (
-      <figure class:list={["rounded-lg border border-stone-200 dark:border-stone-800 bg-sky-50/60 dark:bg-[#0d1517] overflow-hidden", p.id === "europe" && "col-span-2 order-first md:col-span-1 md:order-none"]}>
-        <svg viewBox={`0 0 ${p.w} ${p.h}`} class="w-full h-auto block" role="group" aria-label={`Map: ${p.title}`}>
-          <g>
-            {p.shapes.map((s) => (
-              <path d={s.d} class={s.hl
-                ? "fill-accent-100 dark:fill-accent-900/70 stroke-white dark:stroke-stone-900"
-                : "fill-stone-200 dark:fill-stone-800 stroke-white dark:stroke-stone-900"} stroke-width="0.6" />
-            ))}
+<div class="research-map" data-views={JSON.stringify(views)} data-w={W}>
+  <!-- Controls -->
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+    <div class="flex flex-wrap gap-1.5" role="group" aria-label="Zoom to region">
+      {Object.entries(VIEWS).map(([k, v]) => (
+        <button class="filter-btn chip hover:border-accent-500" data-view={k} aria-pressed={k === "world" ? "true" : "false"}>{v.label}</button>
+      ))}
+    </div>
+    <div class="flex flex-wrap gap-1.5" role="group" aria-label="Show layers">
+      {(["position", "site", "partner"] as PlaceKind[]).map((k) => (
+        <button class="layer-btn chip gap-1.5 hover:border-accent-500" data-layer={k} aria-pressed="true">
+          <span class:list={["inline-block size-2.5 rounded-full",
+            k === "position" && "bg-accent-700 dark:bg-accent-400",
+            k === "site" && "bg-amber-500",
+            k === "partner" && "bg-white dark:bg-stone-900 ring-2 ring-inset ring-accent-700 dark:ring-accent-400"]}></span>
+          {KIND_LABEL[k]}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Map -->
+  <figure class="relative rounded-lg border border-stone-200 dark:border-stone-800 bg-sky-50/70 dark:bg-[#0d1517] overflow-hidden">
+    <svg viewBox={views.world.join(" ")} class="map-svg w-full h-auto block select-none" role="group"
+      aria-label="Map of positions, field sites and co-authors' institutions" style={`aspect-ratio: ${W} / ${H}`}>
+      <g class="countries">
+        {shapes.map((s) => (
+          <path d={s.d} class={`${s.cls} stroke-white dark:stroke-stone-950`} stroke-width="0.4" vector-effect="non-scaling-stroke">
+            {s.n > 0 && <title>{`${s.name}: ${s.n} joint ${s.n === 1 ? "paper" : "papers"}`}</title>}
+          </path>
+        ))}
+      </g>
+      <g class="pins">
+        {pins.map((p) => (
+          <g class="pin cursor-pointer outline-none" data-place={p.id} data-kind={p.kind} data-region={p.region}
+            data-x={p.x} data-y={p.y} data-dx={p.label.dx} data-dy={p.label.dy}
+            tabindex="0" role="button" aria-label={`${p.name}, ${p.country}`} aria-pressed={p.id === initial ? "true" : "false"}>
+            <circle class="pin-halo" cx={p.x} cy={p.y} r="8" />
+            <circle class:list={["pin-dot",
+              p.kind === "position" && "fill-accent-700 dark:fill-accent-400 stroke-white dark:stroke-stone-950",
+              p.kind === "site" && "fill-amber-500 stroke-white dark:stroke-stone-950",
+              p.kind === "partner" && "fill-white dark:fill-stone-900 stroke-accent-700 dark:stroke-accent-400"]}
+              cx={p.x} cy={p.y} r={p.kind === "partner" ? 3.6 : 4.6} stroke-width="1.6" />
+            <text class="pin-label fill-stone-800 dark:fill-stone-200 font-medium" x={p.x + p.label.dx} y={p.y + p.label.dy}
+              text-anchor={p.label.anchor} font-size="11">{p.short ?? p.name.replace(" (Cosenza)", "")}</text>
           </g>
-          {p.pins.map((pin) => {
-            const l = LABEL[pin.id]
-            return (
-              <g class="pin cursor-pointer outline-none" data-place={pin.id} tabindex="0" role="button"
-                aria-label={`${pin.name}, ${pin.period}`} aria-pressed={pin.id === initial ? "true" : "false"}>
-                <circle cx={pin.x} cy={pin.y} r="14" class="pin-halo fill-accent-500/0" />
-                <circle cx={pin.x} cy={pin.y} r={pin.kind === "position" ? 6 : 5}
-                  class={pin.kind === "position"
-                    ? "pin-dot fill-accent-700 dark:fill-accent-400 stroke-white dark:stroke-stone-900"
-                    : "pin-dot fill-amber-500 stroke-white dark:stroke-stone-900"} stroke-width="2" />
-                <text x={pin.x + l.dx} y={pin.y + l.dy} text-anchor={l.anchor}
-                  class="pin-label fill-stone-700 dark:fill-stone-300 text-[15px] font-medium" paint-order="stroke"
-                  stroke="currentColor" style="stroke: var(--map-halo); stroke-width: 3px;">{short(pin.name)}</text>
-              </g>
-            )
-          })}
-        </svg>
-        <figcaption class="px-3 py-1.5 text-xs text-stone-500 border-t border-stone-200 dark:border-stone-800">{p.title}</figcaption>
-      </figure>
-    ))}
-  </div>
+        ))}
+      </g>
+    </svg>
+    <figcaption class="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 text-xs text-stone-500 border-t border-stone-200 dark:border-stone-800 bg-white/60 dark:bg-stone-950/60">
+      <span>Joint papers with authors in each country:</span>
+      {[[1, "1"], [2, "2–4"], [3, "5–9"], [4, "10–19"], [5, "20+"]].map(([b, t]) => (
+        <span class="flex items-center gap-1">
+          <svg class="size-3" viewBox="0 0 10 10"><rect width="10" height="10" rx="2" class={BIN_CLASS[b as number]} /></svg>{t}
+        </span>
+      ))}
+      <span class="ml-auto">{nCountries} countries · Natural Earth</span>
+    </figcaption>
+  </figure>
+  <p class="mt-2 text-xs text-stone-500">Select a point to see what happened there. Selecting a point in Europe or the United States zooms in.</p>
 
-  <div class="mt-3 flex flex-wrap items-center gap-4 text-xs text-stone-500">
-    <span class="flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-full bg-accent-700 dark:bg-accent-400"></span>Positions & research stays</span>
-    <span class="flex items-center gap-1.5"><span class="inline-block size-2.5 rounded-full bg-amber-500"></span>Field studies</span>
-    <span>Select a point to see what I worked on there.</span>
-  </div>
-
+  <!-- Detail cards -->
   <div class="mt-4">
     {places.map((pl) => {
       const papers = pl.papers.map(pubByKey).filter((p) => p !== undefined)
@@ -101,13 +157,15 @@ const initial = "rende"
         <article class="place-card card" data-card={pl.id} hidden={pl.id !== initial}>
           <div class="flex flex-wrap items-baseline justify-between gap-2">
             <h3 class="font-serif text-xl font-semibold">{pl.name}{pl.country !== pl.name && <span class="font-sans text-sm font-normal text-stone-500">, {pl.country}</span>}</h3>
-            <span class={`chip ${pl.kind === "field" ? "!border-amber-400 !text-amber-700 dark:!text-amber-400" : ""}`}>{pl.period}</span>
+            <span class:list={["chip", pl.kind === "site" && "!border-amber-400 !text-amber-700 dark:!text-amber-400"]}>
+              {pl.period ?? (pl.kind === "site" ? "Field / experimental site" : "Partner institution")}
+            </span>
           </div>
-          <ul class="mt-2 text-sm text-accent-700 dark:text-accent-300 space-y-0.5">{pl.roles.map((r) => <li>{r}</li>)}</ul>
+          <ul class="mt-2 text-sm text-accent-700 dark:text-accent-300 space-y-0.5">{pl.lines.map((r) => <li>{r}</li>)}</ul>
           <p class="mt-2 text-stone-600 dark:text-stone-400 leading-relaxed">{pl.text}</p>
           {papers.length > 0 && (
             <div class="mt-3">
-              <div class="eyebrow !text-stone-500 mb-1">Related papers</div>
+              <div class="eyebrow !text-stone-500 mb-1">{papers.length === 1 ? "Paper" : `Papers (${papers.length})`}</div>
               <ul class="space-y-1.5 text-sm">
                 {papers.map((p) => (
                   <li>
@@ -125,31 +183,104 @@ const initial = "rende"
 </div>
 
 <style is:global>
-  .research-map { --map-halo: #f0f9ff; }
-  html.dark .research-map { --map-halo: #0d1517; }
-  .research-map .pin .pin-dot { transition: r 150ms ease, transform 150ms ease; }
-  .research-map .pin:hover .pin-halo,
-  .research-map .pin:focus-visible .pin-halo { fill: rgb(52 141 135 / 0.18); }
-  .research-map .pin[aria-pressed="true"] .pin-halo { fill: rgb(52 141 135 / 0.28); }
+  .research-map .pin-label { paint-order: stroke; stroke: #f0f9ff; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+  html.dark .research-map .pin-label { stroke: #0d1517; }
+  .research-map .pin-halo { fill: transparent; }
+  .research-map .pin:hover .pin-halo, .research-map .pin:focus-visible .pin-halo { fill: rgb(52 141 135 / 0.2); }
+  .research-map .pin[aria-pressed="true"] .pin-halo { fill: rgb(52 141 135 / 0.3); }
   .research-map .pin[aria-pressed="true"] .pin-label { font-weight: 700; }
-  .research-map .pin[aria-pressed="true"] .pin-dot { r: 8; }
-  @media (max-width: 767px) { .research-map .pin-label { font-size: 19px; } }
+  .research-map .pin.layer-off { display: none; }
+  .research-map .map-svg[data-view="world"] .pin:not([data-region=""]):not([aria-pressed="true"]) .pin-label { display: none; }
+  .research-map .layer-btn[aria-pressed="false"] { opacity: .45; }
+  @media (max-width: 639px) {
+    .research-map .pin[data-kind="partner"]:not([aria-pressed="true"]) .pin-label { display: none; }
+  }
   @media (prefers-reduced-motion: no-preference) {
     .research-map .pin[aria-pressed="true"] .pin-halo { animation: pin-pulse 2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
-    @keyframes pin-pulse { 0% { transform: scale(.6); opacity: 1 } 100% { transform: scale(1.6); opacity: 0 } }
+    @keyframes pin-pulse { 0% { transform: scale(.7); opacity: 1 } 100% { transform: scale(1.7); opacity: 0 } }
   }
 </style>
 
 <script>
-  function select(id: string) {
-    document.querySelectorAll<SVGGElement>(".research-map .pin").forEach((g) =>
-      g.setAttribute("aria-pressed", String(g.dataset.place === id)))
-    document.querySelectorAll<HTMLElement>(".research-map .place-card").forEach((c) => (c.hidden = c.dataset.card !== id))
-  }
-  document.querySelectorAll<SVGGElement>(".research-map .pin").forEach((g) => {
-    g.addEventListener("click", () => select(g.dataset.place!))
-    g.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(g.dataset.place!) }
+  for (const root of document.querySelectorAll<HTMLElement>(".research-map")) {
+    const svg = root.querySelector<SVGSVGElement>(".map-svg")!
+    const views: Record<string, number[]> = JSON.parse(root.dataset.views!)
+    const W = Number(root.dataset.w)
+    const pins = [...root.querySelectorAll<SVGGElement>(".pin")]
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches
+    let current = views.world.slice()
+    let viewName = "world"
+    svg.dataset.view = viewName
+
+    // Keep pins and labels the same on-screen size at every zoom level
+    function scalePins(k: number) {
+      for (const g of pins) {
+        const x = +g.dataset.x!, y = +g.dataset.y!
+        const [halo, dot] = g.querySelectorAll("circle")
+        const text = g.querySelector("text")!
+        const base = g.dataset.kind === "partner" ? 4 : 5
+        halo.setAttribute("r", String(9 * k))
+        dot.setAttribute("r", String(base * k))
+        dot.setAttribute("stroke-width", String(1.6 * k))
+        text.setAttribute("font-size", String(12 * k))
+        text.setAttribute("x", String(x + +g.dataset.dx! * k))
+        text.setAttribute("y", String(y + +g.dataset.dy! * k))
+        text.style.strokeWidth = `${3 * k}px`
+      }
+    }
+    // k converts screen pixels to SVG units, so pins and labels keep a constant on-screen size
+    function setBox(b: number[]) {
+      svg.setAttribute("viewBox", b.join(" "))
+      const px = svg.getBoundingClientRect().width || W
+      scalePins(b[2] / px)
+    }
+    function zoomTo(name: string) {
+      viewName = name
+      svg.dataset.view = name
+      root.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === name)))
+      const from = current.slice(), to = views[name]
+      if (reduce) { current = to.slice(); setBox(current); return }
+      const t0 = performance.now(), dur = 650
+      const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+      const step = (now: number) => {
+        const t = Math.min(1, (now - t0) / dur), e = ease(t)
+        // interpolate in log-space for the size so zooming feels uniform
+        const w = Math.exp(Math.log(from[2]) + (Math.log(to[2]) - Math.log(from[2])) * e)
+        const cx = from[0] + from[2] / 2 + ((to[0] + to[2] / 2) - (from[0] + from[2] / 2)) * e
+        const cy = from[1] + from[3] / 2 + ((to[1] + to[3] / 2) - (from[1] + from[3] / 2)) * e
+        const h = w * (to[3] / to[2])
+        current = [cx - w / 2, cy - h / 2, w, h]
+        setBox(current)
+        if (t < 1) requestAnimationFrame(step)
+      }
+      requestAnimationFrame(step)
+    }
+    function select(id: string) {
+      pins.forEach((g) => g.setAttribute("aria-pressed", String(g.dataset.place === id)))
+      root.querySelectorAll<HTMLElement>(".place-card").forEach((c) => (c.hidden = c.dataset.card !== id))
+      const g = pins.find((p) => p.dataset.place === id)
+      if (g && viewName === "world" && g.dataset.region) zoomTo(g.dataset.region)
+    }
+
+    pins.forEach((g) => {
+      g.addEventListener("click", () => select(g.dataset.place!))
+      g.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(g.dataset.place!) }
+      })
     })
-  })
+    root.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) => b.addEventListener("click", () => zoomTo(b.dataset.view!)))
+    root.querySelectorAll<HTMLButtonElement>("[data-layer]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const on = b.getAttribute("aria-pressed") !== "true"
+        b.setAttribute("aria-pressed", String(on))
+        pins.filter((g) => g.dataset.kind === b.dataset.layer).forEach((g) => g.classList.toggle("layer-off", !on))
+      }))
+    window.addEventListener("resize", () => setBox(current))
+    // Small screens: start zoomed on Europe, where most points are
+    if (svg.getBoundingClientRect().width < 640) {
+      current = views.europe.slice(); viewName = "europe"; svg.dataset.view = "europe"
+      root.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === "europe")))
+    }
+    setBox(current)
+  }
 </script>
